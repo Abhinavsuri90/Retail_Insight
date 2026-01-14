@@ -1,0 +1,20 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Jupyter Notebooks
+*.ipynb linguist-language=Python
+
+# Data files
+*.csv linguist-vendored
+*.xlsx linguist-vendored
+
+# Documentation
+*.md text
+*.txt text
+
+# Python
+*.py text eol=lf
+
+# HTML/CSS
+*.html text eol=lf
+*.css text eol=lf
