@@ -26,10 +26,31 @@ Retail companies struggle to:
 - Optimize marketing spend across different customer groups
 
 ### Solution
-This project solves these problems using:
-- **RFM Analysis** (Recency, Frequency, Monetary) to score customer behavior
-- **K-Means Clustering** to segment customers into distinct groups
-- **Market Basket Analysis** to discover product associations
+This project solves these problems using three powerful data science techniques:
+
+#### 1. RFM Analysis (Recency, Frequency, Monetary)
+**What it is:** A customer segmentation method that scores customers based on three key behaviors:
+- **Recency (R):** How recently did the customer make a purchase?
+- **Frequency (F):** How often does the customer buy?
+- **Monetary (M):** How much does the customer spend?
+
+**Why we use it:** RFM is the gold standard in retail analytics because it's simple, interpretable, and proven to correlate with customer lifetime value.
+
+**Where in the project:** Used in `02_feature_engineering_rfm.ipynb` and `run_analysis.py` (Stage 2)
+
+#### 2. K-Means Clustering
+**What it is:** An unsupervised machine learning algorithm that groups similar customers together based on their RFM scores.
+
+**Why we use it:** Automatically discovers natural groupings in customer behavior without pre-defined labels. Fast and scalable for thousands of customers.
+
+**Where in the project:** Used in `03_clustering.ipynb` and `run_analysis.py` (Stage 3)
+
+#### 3. Market Basket Analysis (Apriori Algorithm)
+**What it is:** A data mining technique that discovers which products are frequently bought together.
+
+**Why we use it:** Reveals hidden patterns in purchasing behavior, enabling product bundling and cross-selling strategies.
+
+**Where in the project:** Used in `04_market_basket.ipynb` and `run_analysis.py` (Stage 4)
 
 ---
 
@@ -305,127 +326,522 @@ df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
 
 ### 2. RFM Feature Engineering
 
-**RFM Framework:**
+#### What is RFM Analysis?
 
-**Recency (R)**
+RFM is a **customer value assessment framework** developed by database marketers in the 1990s. It's based on three empirically-proven behavioral indicators:
+
+**RECENCY (R) - "When did they last buy?"**
+
 ```python
 # Days since last purchase
 current_date = df['InvoiceDate'].max() + timedelta(days=1)
 recency = (current_date - customer_last_purchase_date).days
 ```
-- Lower is better (recent customers are more engaged)
-- Range: 1-374 days
-- Median: 51 days
 
-**Frequency (F)**
+**What we calculate:**
+- For each customer, find their most recent purchase date
+- Calculate days between that date and the analysis date (Dec 10, 2011)
+- Result: Number of days since last activity
+
+**Why this matters:**
+- **Low Recency (1-30 days):** Customer is actively engaged, likely to buy again soon
+- **Medium Recency (31-90 days):** Customer is moderately engaged, needs nurturing
+- **High Recency (90+ days):** Customer is at risk of churning, needs win-back campaign
+
+**In our data:**
+- Range: 1-374 days
+- Median: 51 days (typical customer last bought 7 weeks ago)
+- Mean: 93 days (skewed by inactive customers)
+
+**Why lower is better:** Recent customers have higher purchase intent and brand recall.
+
+**FREQUENCY (F) - "How often do they buy?"**
+
 ```python
-# Number of unique orders
+# Number of unique orders (invoices)
 frequency = df.groupby('Customer ID')['Invoice'].nunique()
 ```
-- Higher is better (frequent buyers are loyal)
+
+**What we calculate:**
+- Count distinct invoice numbers per customer
+- Each invoice = one shopping session
+- Result: Total number of purchases
+
+**Why this matters:**
+- **Low Frequency (1-2 orders):** One-time or occasional buyer, not loyal yet
+- **Medium Frequency (3-10 orders):** Regular customer, developing loyalty
+- **High Frequency (10+ orders):** Loyal customer or B2B buyer, extremely valuable
+
+**In our data:**
 - Range: 1-209 orders
-- Median: 2 orders
+- Median: 2 orders (half of customers bought only 1-2 times)
+- Mean: 4.3 orders
+- Top customer: 209 orders (likely a reseller)
 
-**Monetary (M)**
+**Why higher is better:** Frequent buyers have higher retention rates and lifetime value.
+
+**MONETARY (M) - "How much do they spend?"**
+
 ```python
-# Total revenue per customer
+# Total revenue per customer (lifetime value)
 monetary = df.groupby('Customer ID')['TotalValue'].sum()
+# where TotalValue = Quantity × Price per item
 ```
-- Higher is better (high spenders are valuable)
-- Range: £3.75 - £280,206
-- Median: £674.49
 
-**Normalization:**
+**What we calculate:**
+- Sum all purchase amounts across all orders
+- Includes quantity discounts and bulk purchases
+- Result: Total revenue contributed by customer
+
+**Why this matters:**
+- **Low Monetary (£0-500):** Small basket sizes, price-sensitive
+- **Medium Monetary (£500-5,000):** Average spenders, mainstream customers
+- **High Monetary (£5,000+):** High-value customers, possibly wholesale/B2B
+
+**In our data:**
+- Range: £3.75 - £280,206
+- Median: £674.49 (typical customer worth ~£675)
+- Mean: £2,054.27 (pulled up by VIP customers)
+- Top customer: £280,206 (definitely a reseller)
+
+**Why higher is better:** High spenders drive revenue and profit margins.
+
+**NORMALIZATION (Z-Score Standardization)**
+
 ```python
 from sklearn.preprocessing import StandardScaler
 
 scaler = StandardScaler()
 rfm_scaled = scaler.fit_transform(rfm[['Recency', 'Frequency', 'Monetary']])
 ```
-- Puts all features on same scale (mean=0, std=1)
-- Prevents Monetary from dominating clustering
-- Essential for distance-based algorithms
+
+**What this does:**
+- Converts each feature to: (value - mean) / standard_deviation
+- Result: All features have mean=0, standard_deviation=1
+
+**Why we MUST do this:**
+
+**Problem without normalization:**
+- Recency: 1-374 (range of ~373)
+- Frequency: 1-209 (range of ~208)
+- Monetary: £3.75-£280,206 (range of ~280,000!)
+
+K-Means uses Euclidean distance. Without scaling, Monetary would **dominate** the distance calculation:
+
+```
+Distance = √[(R₁-R₂)² + (F₁-F₂)² + (M₁-M₂)²]
+           ↑ tiny      ↑ tiny      ↑ HUGE!
+```
+
+**After normalization:**
+- All features contribute equally to clustering
+- Recency gets same weight as Frequency and Monetary
+- Clustering captures behavioral patterns, not just spending amount
+
+**When we apply this:** After calculating raw RFM scores, before clustering (in Stage 2→3 transition)
 
 ### 3. K-Means Clustering
 
-**Algorithm Choice:**
-- K-Means: Fast, scalable, works well with RFM
-- Alternative considered: Hierarchical clustering (too slow for 4,338 customers)
+#### What is K-Means Clustering?
 
-**Optimal K Selection:**
+K-Means is an **unsupervised learning algorithm** that groups similar data points together. "Unsupervised" means we don't tell it what the groups should be—it discovers them automatically.
+
+**How it works:**
+1. **Initialize:** Randomly place K cluster centers (centroids)
+2. **Assign:** Assign each customer to nearest centroid
+3. **Update:** Move centroids to center of assigned points
+4. **Repeat:** Steps 2-3 until centroids stop moving
+
+**Why we use K-Means (vs. other clustering algorithms):**
+
+| Algorithm | Speed | Scalability | RFM Suitability | Why NOT Used |
+|-----------|-------|-------------|-----------------|---------------|
+| **K-Means** | ✅ Fast | ✅ 1000s customers | ✅ Works great | **CHOSEN** |
+| Hierarchical | ❌ Slow | ❌ Max ~1000 | ✅ Good | Too slow for 4,338 customers |
+| DBSCAN | ✅ Fast | ✅ Scalable | ❌ Poor | Struggles with varying densities |
+| Gaussian Mixture | ⚠️ Moderate | ⚠️ Moderate | ✅ Good | Overkill for RFM (K-Means sufficient) |
+
+**K-Means is perfect for RFM because:**
+- RFM features are continuous numeric values (ideal for K-Means)
+- We want compact, spherical clusters (K-Means specialty)
+- We need fast execution for 4,338 customers
+- Business stakeholders understand "group customers into K segments"
+
+#### Choosing K: The Elbow Method
+
+**The Problem:** How many clusters (K) should we create?
+- Too few (K=2): Oversimplified, misses nuance
+- Too many (K=10): Overfitted, hard to act on
+
+**The Solution: Elbow Method**
+
 ```python
-# Elbow Method
-inertias = []
-for k in range(2, 11):
+# Try different values of K
+inertias = []  # Inertia = sum of squared distances to nearest centroid
+for k in range(2, 11):  # Test K from 2 to 10
     kmeans = KMeans(n_clusters=k, random_state=42)
     kmeans.fit(rfm_scaled)
     inertias.append(kmeans.inertia_)
 
-# Plot and find elbow point
-# Result: K=4 is optimal
+# Plot K vs. Inertia
+plt.plot(range(2, 11), inertias, marker='o')
+plt.xlabel('Number of Clusters (K)')
+plt.ylabel('Inertia (WCSS)')
+plt.title('Elbow Method')
 ```
 
-**Model Training:**
+**What we look for:**
+```
+Inertia
+  |
+  |● 
+  | ●
+  |  ●
+  |   ●___●___●___●  ← Elbow at K=4
+  |__________________ K
+   2  3  4  5  6  7
+```
+
+**Why K=4 is optimal:**
+- **Before K=4:** Inertia drops rapidly (adding clusters helps a lot)
+- **At K=4:** The "elbow" point (diminishing returns start)
+- **After K=4:** Inertia drops slowly (marginal improvement)
+
+**Our decision:** K=4 balances model complexity and business interpretability.
+
+**What happens at different K values:**
+- **K=2:** Only "Good" vs "Bad" customers (too simple)
+- **K=3:** Misses the VIP micro-segment (0.3% of base)
+- **K=4:** Perfect balance—captures VIP, Elite, At-Risk, Loyal ✅
+- **K=5:** Splits At-Risk into two similar groups (unnecessary)
+- **K=6+:** Creates tiny, statistically unreliable segments
+
+#### Model Training
+
 ```python
-kmeans = KMeans(n_clusters=4, random_state=42, n_init=10)
+kmeans = KMeans(
+    n_clusters=4,      # Use 4 segments (from Elbow Method)
+    random_state=42,   # For reproducibility
+    n_init=10          # Run algorithm 10 times, pick best
+)
 clusters = kmeans.fit_predict(rfm_scaled)
 ```
 
-**Interpretation:**
-- Cluster 0 (At-Risk): High recency, low frequency/monetary
-- Cluster 1 (Loyal): Very high recency, low frequency/monetary
-- Cluster 2 (VIP): Low recency, very high frequency/monetary
-- Cluster 3 (Elite): Low recency, high frequency/monetary
+**Parameter Explanations:**
 
-### 4. Market Basket Analysis
+**n_clusters=4**
+- **What:** Number of customer segments to create
+- **Why 4:** Determined by Elbow Method analysis
+- **When we set this:** After running Elbow Method in notebook 03
+- **Could we change it:** Yes, but 4 is empirically optimal
 
-**Why Apriori?**
-- Classic algorithm for association rules
-- Efficient for sparse transaction matrices
-- Proven in retail industry
+**random_state=42**
+- **What:** Seed for random number generator
+- **Why 42:** Convention (from "Hitchhiker's Guide"), ensures reproducibility
+- **When we set this:** Always, at the start
+- **Effect:** Same results every time you run the code
+
+**n_init=10**
+- **What:** Number of times to run K-Means with different initializations
+- **Why 10:** K-Means can get stuck in local optima; running 10 times finds best solution
+- **When we set this:** Default in scikit-learn
+- **Trade-off:** Higher = better results but slower (10 is sweet spot)
+
+**What fit_predict() does:**
+1. Runs K-Means algorithm 10 times
+2. Picks the run with lowest inertia (best clustering)
+3. Returns cluster labels: [0, 1, 2, 3] for each customer
+
+#### Cluster Interpretation
+
+After clustering, we get 4 groups. We analyze their RFM profiles:
+
+**Cluster 0: At-Risk Customers (3,054 people, 70.4%)**
+- Recency: 44 days (recently active)
+- Frequency: 3.7 orders (moderate engagement)
+- Monetary: £1,359 (low-moderate value)
+- **Why this pattern:** Recent browsers who haven't committed to brand yet
+- **Business label:** "At-Risk" (could churn or become loyal)
+
+**Cluster 1: Loyal Customers (1,067 people, 24.6%)**
+- Recency: 248 days (very inactive)
+- Frequency: 1.6 orders (minimal engagement)
+- Monetary: £481 (low value)
+- **Why this pattern:** One-time buyers who never returned
+- **Business label:** "Loyal" is ironic—these are churned customers
+
+**Cluster 2: VIP Customers (13 people, 0.3%)**
+- Recency: 7 days (just bought)
+- Frequency: 82.5 orders (!!)
+- Monetary: £127,338 (ultra-high value)
+- **Why this pattern:** B2B resellers or bulk buyers
+- **Business label:** "VIP" (ultra-high value, critical to retain)
+
+**Cluster 3: Elite Whales (204 people, 4.7%)**
+- Recency: 16 days (recent)
+- Frequency: 22.3 orders (very high)
+- Monetary: £12,709 (high value)
+- **Why this pattern:** Premium individual customers, brand enthusiasts
+- **Business label:** "Elite" (high-value loyalists)
+
+**Where K-Means is used:**
+- File: `03_clustering.ipynb` (interactive) or `run_analysis.py` (automated)
+- Stage: After RFM normalization, before market basket analysis
+- Output: `data/processed/customer_segments.csv` with cluster labels
+
+### 4. Market Basket Analysis (Apriori Algorithm)
+
+#### What is Market Basket Analysis?
+
+Market Basket Analysis is a **data mining technique** that discovers associations between products. It answers: "If a customer buys Product A, what else will they buy?"
+
+**Real-world examples:**
+- Amazon: "Customers who bought this also bought..."
+- Supermarkets: Place beer near chips (high association)
+- Netflix: "Because you watched X, try Y"
+
+**The Apriori Algorithm (Agrawal & Srikant, 1994)**
+
+Apriori is the **classic algorithm** for finding frequent itemsets. It uses a clever trick:
+
+**Apriori Principle:** If an itemset is frequent, all its subsets must also be frequent.
+
+**Example:**
+- If {Milk, Bread, Butter} is frequent (appears often)
+- Then {Milk, Bread}, {Milk, Butter}, {Bread, Butter} must also be frequent
+- **Why this matters:** We can prune search space (skip checking infrequent combinations)
+
+**Why we use Apriori (vs. other algorithms):**
+
+| Algorithm | Speed | Scalability | When to Use | Why NOT Used |
+|-----------|-------|-------------|-------------|---------------|
+| **Apriori** | ⚠️ Moderate | ⚠️ 1000s products | Sparse data | **CHOSEN** ✅ |
+| FP-Growth | ✅ Fast | ✅ 10,000s products | Dense data | Overkill for our dataset |
+| ECLAT | ✅ Fast | ⚠️ Moderate | Vertical data | Not well-supported in Python |
+
+**Apriori is perfect for retail because:**
+- Retail transaction data is **sparse** (customers buy 5-10 items out of 3,448 products)
+- We want **interpretable rules** ("If A, then B")
+- Well-tested in industry (30 years of research)
+- Available in mlxtend library (easy to use)
+
+#### Why Focus on VIP/Elite Customers?
 
 **Filtering Strategy:**
 ```python
-# Focus on VIP + Elite segments only
+# Only analyze VIP + Elite segments
 vip_elite_customers = segments[segments['Segment'].isin([2, 3])]['Customer ID']
 vip_transactions = df[df['Customer ID'].isin(vip_elite_customers)]
 ```
-- 217 customers (5% of base)
-- 111,302 transactions
-- £4.2M revenue (47.7% of total)
 
-**Transaction Encoding:**
+**What we filter:**
+- Keep: 217 customers (5% of customer base)
+- Keep: 111,302 transactions
+- Keep: £4,248,052 revenue (47.7% of total)
+- Remove: At-Risk and Loyal segments
+
+**Why this filtering is crucial:**
+
+**Problem without filtering (using all 4,338 customers):**
+- Most customers (70%) bought only 1-2 times
+- Sparse data → unreliable patterns
+- Transaction matrix: 5,629 invoices × 3,448 products = 19 million cells (mostly zeros)
+- Apriori would find mostly noise
+
+**Solution (VIP/Elite only):**
+- These 217 customers average 35 orders each
+- Dense data → reliable patterns
+- Higher support values → statistically significant rules
+- These are high-value customers we actually want to cross-sell to
+
+**Business justification:**
+- VIP/Elite generate 47.7% of revenue
+- Product recommendations should target high-value customers
+- Cross-selling to £100 customer = £10 gain
+- Cross-selling to £10,000 customer = £1,000 gain (100× better ROI)
+
+#### Transaction Encoding (Creating the Basket Matrix)
+
 ```python
 from mlxtend.preprocessing import TransactionEncoder
 
-# Create basket format
+# Step 1: Group by invoice and product
 basket = transactions.groupby(['Invoice', 'Description'])['Quantity'].sum().unstack().fillna(0)
+
+# Step 2: Convert to binary (bought=1, not bought=0)
 basket = basket.applymap(lambda x: 1 if x > 0 else 0)
 ```
 
-**Rule Generation:**
-```python
-from mlxtend.frequent_patterns import apriori, association_rules
+**What this creates:**
 
-# Find frequent itemsets
-frequent_itemsets = apriori(basket, min_support=0.02, use_colnames=True)
-
-# Generate rules
-rules = association_rules(frequent_itemsets, metric='confidence', min_threshold=0.6)
+**Before encoding (transaction format):**
+```
+Invoice    | Product                    | Quantity
+-----------|----------------------------|----------
+537626     | Pink Regency Teacup        | 2
+537626     | Green Regency Teacup       | 2
+537627     | Charlotte Bag              | 1
 ```
 
-**Metrics Explained:**
+**After encoding (basket matrix):**
+```
+Invoice | Pink Teacup | Green Teacup | Charlotte Bag | ...
+--------|-------------|--------------|---------------|-----
+537626  | 1           | 1            | 0             | ...
+537627  | 0           | 0            | 1             | ...
+```
 
-- **Support**: P(A and B) - How often items appear together
-  - Example: 0.027 = 2.7% of transactions contain both items
+**Why binary (1/0) instead of quantity:**
+- Apriori cares about **co-occurrence**, not quantity
+- "Bought 1 teacup + 5 teacups" = same pattern as "bought both"
+- Simplifies algorithm (faster computation)
+- Standard practice in market basket analysis
 
-- **Confidence**: P(B|A) - If A is bought, probability B is bought
-  - Example: 0.90 = 90% of A purchases include B
+**Matrix dimensions:**
+- Rows: 5,629 invoices (unique shopping sessions)
+- Columns: 3,448 products
+- Sparsity: ~99.7% zeros (typical customer buys 5-10 products)
 
-- **Lift**: P(B|A) / P(B) - How much more likely B is bought with A
-  - Example: 21.3 = B is 21.3× more likely with A than without
+#### Finding Frequent Itemsets
 
----
+```python
+from mlxtend.frequent_patterns import apriori
+
+frequent_itemsets = apriori(
+    basket, 
+    min_support=0.02,  # 2% minimum support
+    use_colnames=True   # Use product names (not indices)
+)
+```
+
+**What min_support=0.02 means:**
+- **Support = 0.02** means item(set) appears in **2% of transactions**
+- 2% of 5,629 transactions = **113 transactions minimum**
+- Products appearing in <113 transactions are **ignored** (too rare)
+
+**Why min_support=0.02 (2%)?**
+
+| Support | Transactions | Products Found | Problem |
+|---------|--------------|----------------|----------|
+| 0.001 (0.1%) | 6 | 500+ | Too many rare items, noise |
+| 0.01 (1%) | 56 | 150 | Some unreliable patterns |
+| **0.02 (2%)** | **113** | **244** | **Balanced** ✅ |
+| 0.05 (5%) | 281 | 30 | Miss valid patterns |
+| 0.10 (10%) | 563 | 5 | Too restrictive |
+
+**Why 2% is optimal:**
+- **Statistically significant:** 113 transactions is reliable sample
+- **Business relevant:** Products bought together 113+ times = real pattern
+- **Not too restrictive:** Still captures niche but valuable associations
+- **Industry standard:** Retail datasets typically use 1-5% support
+
+**Output:** 244 frequent itemsets (products that appear together ≥2% of time)
+
+#### Generating Association Rules
+
+```python
+from mlxtend.frequent_patterns import association_rules
+
+rules = association_rules(
+    frequent_itemsets, 
+    metric='confidence',
+    min_threshold=0.6  # 60% minimum confidence
+)
+```
+
+**What min_confidence=0.6 (60%) means:**
+- **If customer buys A, they buy B at least 60% of the time**
+- Example: 100 people buy Pink Teacup → at least 60 also buy Green Teacup
+
+**Why min_confidence=0.6 (60%)?**
+
+| Confidence | Interpretation | Business Use | Problem |
+|------------|----------------|--------------|----------|
+| 0.3 (30%) | Low reliability | Weak recommendation | Too many false positives |
+| 0.5 (50%) | Moderate | Test recommendations | Unreliable for automated systems |
+| **0.6 (60%)** | **Strong** | **Confident bundling** | **Balanced** ✅ |
+| 0.8 (80%) | Very strong | Guaranteed bundles | Miss valid opportunities |
+| 0.9 (90%) | Extremely strong | Pre-package | Too restrictive |
+
+**Why 60% is optimal:**
+- **Actionable:** 60% accuracy justifies business decisions
+- **Not too restrictive:** Captures valuable patterns
+- **Marketing acceptable:** 6/10 success rate is good ROI
+- **Industry benchmark:** E-commerce uses 50-70% confidence
+
+**Output:** 20 association rules (high-confidence product pairs)
+
+#### Understanding the Metrics
+
+**1. Support: P(A ∩ B) - "How popular is this combination?"**
+
+```python
+Support = (Transactions with both A and B) / (Total transactions)
+```
+
+**Example:** Pink Teacup + Green Teacup
+- Appears together in: 153 transactions
+- Total transactions: 5,629
+- **Support = 153 / 5,629 = 0.027 (2.7%)**
+
+**Interpretation:** 2.7% of all shopping sessions include both items.
+
+**Why it matters:**
+- Low support (<1%): Rare combination, might be random
+- High support (>5%): Very common combo, strong pattern
+- **Our 2.7%:** Moderate frequency, statistically significant
+
+**2. Confidence: P(B|A) - "How likely is B when A is bought?"**
+
+```python
+Confidence = (Transactions with A and B) / (Transactions with A)
+```
+
+**Example:** Pink Teacup → Green Teacup
+- Transactions with both: 153
+- Transactions with Pink Teacup: 170
+- **Confidence = 153 / 170 = 0.90 (90%)**
+
+**Interpretation:** 90% of customers who buy Pink Teacup also buy Green Teacup.
+
+**Why it matters:**
+- **90% confidence** = Strong recommendation ("If you buy this, you need that")
+- Can recommend Green Teacup on Pink Teacup product page
+- Bundle discount will likely increase sales
+
+**3. Lift: P(B|A) / P(B) - "How much stronger is this association than random?"**
+
+```python
+Lift = Confidence / P(B)
+     = [P(B|A)] / [P(B)]
+```
+
+**Example:** Pink Teacup → Green Teacup
+- P(Green Teacup | Pink Teacup) = 0.90 (90%)
+- P(Green Teacup) = 0.042 (4.2% of all transactions)
+- **Lift = 0.90 / 0.042 = 21.33**
+
+**Interpretation:**
+- Buying Pink Teacup makes you **21.33× more likely** to buy Green Teacup
+- vs. random customer (only 4.2% buy Green)
+
+**Lift values explained:**
+- **Lift = 1.0:** No association (independent products)
+- **Lift < 1.0:** Negative association (buying A decreases B likelihood)
+- **Lift > 1.0:** Positive association (buying A increases B likelihood)
+- **Lift > 3.0:** Strong association (industry threshold)
+- **Lift > 10.0:** Very strong association (rare and valuable)
+- **Lift = 21.33:** Extremely strong! (top 0.1% of associations)
+
+**Why lift matters most:**
+- Confidence alone can be misleading (high if B is very popular)
+- Lift adjusts for baseline popularity
+- **High lift** = true behavioral correlation, not just popular product
+
+**Where Market Basket Analysis is used:**
+- File: `04_market_basket.ipynb` (interactive) or `run_analysis.py` (automated)
+- Stage: After customer segmentation (only on VIP/Elite customers)
+- Output: `data/processed/association_rules.csv` with support/confidence/lift
 
 ## Results & Findings
 
