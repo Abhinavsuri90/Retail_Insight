@@ -51,41 +51,37 @@ def get_recommendations(product_name, rules_df, top_n=5):
     return recommendations[['consequents', 'confidence', 'lift', 'support']]
 
 def display_recommendation(product, recommendations):
-    """Display recommendations in a user-friendly format"""
+    """Display recommendations in a simple, clear format"""
     print("\n" + "="*70)
-    print(f"PRODUCT RECOMMENDATION ENGINE")
+    print(f"PRODUCT: {product}")
     print("="*70)
-    print(f"\nCustomer is viewing: {product}")
-    print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     if recommendations is None or recommendations.empty:
-        print("\nNo recommendations available for this product")
-        print("   (Product may not have strong associations)")
+        print("\nNo recommendations found.")
         return
     
-    print("\nRECOMMENDED PRODUCTS (Based on customer behavior patterns):")
+    print("\nCUSTOMERS WHO BUY THIS ALSO BUY:")
     print("-" * 70)
     
     for idx, (_, row) in enumerate(recommendations.iterrows(), 1):
-        confidence_pct = row['confidence'] * 100
-        lift_value = row['lift']
+        # Clean up product name
+        item = str(row['consequents']).replace("frozenset", "").replace("{", "").replace("}", "").replace("'", "").strip("()")
+        confidence = row['confidence'] * 100
+        lift = row['lift']
         
-        print(f"\n{idx}. {row['consequents']}")
-        print(f"   Confidence: {confidence_pct:.1f}% of customers who buy the above")
-        print(f"               also buy this product")
-        print(f"   Lift: {lift_value:.2f}x more likely than random")
+        print(f"\n{idx}. {item}")
+        print(f"   {confidence:.0f}% of customers buy both")
+        print(f"   {lift:.1f}x more likely than random")
         
-        # Interpret the strength
-        if lift_value > 15:
-            strength = "EXTREMELY STRONG - Pre-bundle these items"
-        elif lift_value > 10:
-            strength = "VERY STRONG - Highly recommend"
-        elif lift_value > 5:
-            strength = "STRONG - Good recommendation"
+        # Simple action
+        if lift >= 15:
+            print(f"   >> Bundle these together")
+        elif lift >= 10:
+            print(f"   >> Strong recommendation")
+        elif lift >= 5:
+            print(f"   >> Good suggestion")
         else:
-            strength = "MODERATE - Consider showing"
-        
-        print(f"   {strength}")
+            print(f"   >> Consider showing")
     
     print("\n" + "="*70)
 
@@ -142,65 +138,62 @@ def demo_examples():
     # Load rules
     rules = load_association_rules()
     
-    # Example 1: Teacup recommendation
+    # Multiple product examples across different categories
     example_products = [
-        "PINK REGENCY TEACUP AND SAUCER",
-        "GARDENERS KNEELING PAD CUP OF TEA",
-        "CHARLOTTE BAG PINK POLKADOT"
+        "PINK REGENCY TEACUP AND SAUCER",           # Teacup collection
+        "GREEN REGENCY TEACUP AND SAUCER",          # Another teacup
+        "GARDENERS KNEELING PAD CUP OF TEA",        # Garden accessories
+        "GARDENERS KNEELING PAD KEEP CALM",         # Related garden pad
+        "CHARLOTTE BAG PINK POLKADOT",              # Bag collection
+        "STRAWBERRY CHARLOTTE BAG",                 # Another bag style
+        "ALARM CLOCK BAKELIKE RED",                 # Home decor
+        "ALARM CLOCK BAKELIKE IVORY",               # Clock variations
+        "JUMBO BAG STRAWBERRY",                     # Large bag category
+        "DOLLY GIRL LUNCH BOX"                      # Lunch box collection
     ]
     
-    for product in example_products:
+    for i, product in enumerate(example_products, 1):
+        print(f"\n{'='*70}")
+        print(f"EXAMPLE {i}/{len(example_products)}")
+        print(f"{'='*70}")
         recommendations = get_recommendations(product, rules, top_n=3)
         display_recommendation(product, recommendations)
-        input("\nPress Enter to see next example...")
+        print("\n" + "="*70)
+    
     
     print("\n" + "="*70)
-    print("HOW THIS WORKS:")
+    print("SUMMARY:")
     print("="*70)
-    print("""
-1. **Data Collection**: We analyzed 111,302 transactions from VIP customers
-   
-2. **Pattern Discovery**: Used Apriori algorithm to find products bought together
-   - Minimum support: 2% (appears in 113+ transactions)
-   - Minimum confidence: 60% (correct 6/10 times)
-   
-3. **Association Rules**: Generated 20 high-confidence rules
-   - Example: "Pink Teacup -> Green Teacup" (90% confidence, 21.3x lift)
-   
-4. **Real-Time Recommendations**: When customer views/adds product A:
-   - System finds all rules where A is antecedent (A -> B)
-   - Sorts by lift (strongest associations first)
-   - Returns top N recommendations
-   
-5. **Business Impact**:
-   - Cross-selling: Increase average order value by 15-20%
-   - Customer satisfaction: Show relevant complementary items
-   - Inventory: Bundle slow-moving items with popular ones
-   
-6. **Live Deployment**:
-   - Product pages: "Customers also bought..."
-   - Shopping cart: "Complete your collection"
-   - Email campaigns: Personalized product suggestions
-    """)
+    print("\nHOW IT WORKS:")
+    print("- Analyzed 111,302 customer transactions")
+    print("- Found patterns: products bought together")
+    print("- Created 20 recommendation rules")
+    print("\nBUSINESS USE:")
+    print("- Show 'Customers also bought...' on product pages")
+    print("- Bundle items together for higher sales")
+    print("- Send personalized product suggestions")
+    print("\nRESULTS:")
+    print("- 60-90% of customers buy recommended items")
+    print("- Up to 21x stronger than random suggestions")
+    print("- Works across 6 product categories")
+    print("="*70)
     
     print("\n" + "="*70)
-    print("This project is EXCELLENT for demonstrating:")
+    print("This project demonstrates:")
+    
+    print("\n" + "="*70)
+    print("PROJECT HIGHLIGHTS:")
     print("="*70)
-    print("""
-Machine Learning: Unsupervised learning (K-Means + Apriori)
-Data Science: End-to-end pipeline (data -> insights -> action)
-Business Impact: Quantified results (5% customers = 47.7% revenue)
-Recommendation Systems: Practical implementation
-Production-Ready: Automated script + interactive dashboard
-Clean Code: Professional structure, documentation, testing
-
-Project Strengths:
-- Real dataset (541K transactions from UCI)
-- Statistical rigor (confidence, lift, support metrics)
-- Actionable insights (product bundles, customer segments)
-- Scalable architecture (works with 1M+ transactions)
-- Portfolio-ready (GitHub, documentation, visualization)
-    """)
+    print("- Machine Learning: K-Means Clustering + Market Basket Analysis")
+    print("- Real Data: 541,000 transactions from UCI repository")
+    print("- Business Value: Increase sales through smart recommendations")
+    print("- Production Ready: Clean code, documentation, visualization")
+    print("\nKey Results:")
+    print("- 4 customer segments identified")
+    print("- 20 recommendation rules created")
+    print("- 60-90% prediction accuracy")
+    print("- Up to 21x lift over random suggestions")
+    print("="*70)
 
 if __name__ == "__main__":
     print("\n" + "="*70)
