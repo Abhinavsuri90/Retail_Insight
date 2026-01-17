@@ -457,10 +457,10 @@ K-Means is an **unsupervised learning algorithm** that groups similar data point
 
 | Algorithm | Speed | Scalability | RFM Suitability | Why NOT Used |
 |-----------|-------|-------------|-----------------|---------------|
-| **K-Means** | ✅ Fast | ✅ 1000s customers | ✅ Works great | **CHOSEN** |
-| Hierarchical | ❌ Slow | ❌ Max ~1000 | ✅ Good | Too slow for 4,338 customers |
-| DBSCAN | ✅ Fast | ✅ Scalable | ❌ Poor | Struggles with varying densities |
-| Gaussian Mixture | ⚠️ Moderate | ⚠️ Moderate | ✅ Good | Overkill for RFM (K-Means sufficient) |
+| **K-Means** | Fast | 1000s customers | Works great | **CHOSEN** |
+| Hierarchical | Slow | Max ~1000 | Good | Too slow for 4,338 customers |
+| DBSCAN | Fast | Scalable | Poor | Struggles with varying densities |
+| Gaussian Mixture | Moderate | Moderate | Good | Overkill for RFM (K-Means sufficient) |
 
 **K-Means is perfect for RFM because:**
 - RFM features are continuous numeric values (ideal for K-Means)
@@ -513,7 +513,7 @@ Inertia
 **What happens at different K values:**
 - **K=2:** Only "Good" vs "Bad" customers (too simple)
 - **K=3:** Misses the VIP micro-segment (0.3% of base)
-- **K=4:** Perfect balance—captures VIP, Elite, At-Risk, Loyal ✅
+- **K=4:** Perfect balance—captures VIP, Elite, At-Risk, Loyal
 - **K=5:** Splits At-Risk into two similar groups (unnecessary)
 - **K=6+:** Creates tiny, statistically unreliable segments
 
@@ -616,9 +616,9 @@ Apriori is the **classic algorithm** for finding frequent itemsets. It uses a cl
 
 | Algorithm | Speed | Scalability | When to Use | Why NOT Used |
 |-----------|-------|-------------|-------------|---------------|
-| **Apriori** | ⚠️ Moderate | ⚠️ 1000s products | Sparse data | **CHOSEN** ✅ |
-| FP-Growth | ✅ Fast | ✅ 10,000s products | Dense data | Overkill for our dataset |
-| ECLAT | ✅ Fast | ⚠️ Moderate | Vertical data | Not well-supported in Python |
+| **Apriori** | Moderate | 1000s products | Sparse data | **CHOSEN** |
+| FP-Growth | Fast | 10,000s products | Dense data | Overkill for our dataset |
+| ECLAT | Fast | Moderate | Vertical data | Not well-supported in Python |
 
 **Apriori is perfect for retail because:**
 - Retail transaction data is **sparse** (customers buy 5-10 items out of 3,448 products)
@@ -726,7 +726,7 @@ frequent_itemsets = apriori(
 |---------|--------------|----------------|----------|
 | 0.001 (0.1%) | 6 | 500+ | Too many rare items, noise |
 | 0.01 (1%) | 56 | 150 | Some unreliable patterns |
-| **0.02 (2%)** | **113** | **244** | **Balanced** ✅ |
+| **0.02 (2%)** | **113** | **244** | **Balanced** |
 | 0.05 (5%) | 281 | 30 | Miss valid patterns |
 | 0.10 (10%) | 563 | 5 | Too restrictive |
 
@@ -760,7 +760,7 @@ rules = association_rules(
 |------------|----------------|--------------|----------|
 | 0.3 (30%) | Low reliability | Weak recommendation | Too many false positives |
 | 0.5 (50%) | Moderate | Test recommendations | Unreliable for automated systems |
-| **0.6 (60%)** | **Strong** | **Confident bundling** | **Balanced** ✅ |
+| **0.6 (60%)** | **Strong** | **Confident bundling** | **Balanced** |
 | 0.8 (80%) | Very strong | Guaranteed bundles | Miss valid opportunities |
 | 0.9 (90%) | Extremely strong | Pre-package | Too restrictive |
 
@@ -917,15 +917,15 @@ for product in top_5:
 
 **Output to customer:**
 ```
-🛍️ Customers who bought Pink Regency Teacup also bought:
+Customers who bought Pink Regency Teacup also bought:
 
 1. Green Regency Teacup
-   ✓ 89.8% of customers also buy this
-   🚀 21.33× more likely than random
+   - 89.8% of customers also buy this
+   - 21.33× more likely than random
    
 2. Roses Regency Teacup
-   ✓ 74.3% of customers also buy this
-   🚀 20.69× more likely than random
+   - 74.3% of customers also buy this
+   - 20.69× more likely than random
 ```
 
 #### Step 3: Business Logic Layer
@@ -936,10 +936,10 @@ for product in top_5:
 - **60-69% confidence:** "You might also like" (moderate pattern)
 
 **Lift Interpretation:**
-- **Lift > 15:** 🔥 "Extremely Strong - Pre-bundle these items"
-- **Lift 10-15:** ⭐ "Very Strong - Highly recommend"
-- **Lift 5-10:** ✅ "Strong - Good recommendation"
-- **Lift 3-5:** ➡️ "Moderate - Consider showing"
+- **Lift > 15:** "Extremely Strong - Pre-bundle these items"
+- **Lift 10-15:** "Very Strong - Highly recommend"
+- **Lift 5-10:** "Strong - Good recommendation"
+- **Lift 3-5:** "Moderate - Consider showing"
 
 ### Mathematical Foundation
 
@@ -1005,32 +1005,32 @@ python recommendation_demo.py
 
 ```
 ======================================================================
-🛍️  PRODUCT RECOMMENDATION ENGINE
+PRODUCT RECOMMENDATION ENGINE
 ======================================================================
 
-📦 Customer is viewing: PINK REGENCY TEACUP AND SAUCER
-⏰ Timestamp: 2026-01-17 11:17:56
+Customer is viewing: PINK REGENCY TEACUP AND SAUCER
+Timestamp: 2026-01-17 11:17:56
 
-✨ RECOMMENDED PRODUCTS (Based on customer behavior patterns):
+RECOMMENDED PRODUCTS (Based on customer behavior patterns):
 ----------------------------------------------------------------------
 
 1. GREEN REGENCY TEACUP AND SAUCER
-   📊 Confidence: 89.8% of customers who buy the above
-                 also buy this product
-   🚀 Lift: 21.33× more likely than random
-   🔥 EXTREMELY STRONG - Pre-bundle these items
+   Confidence: 89.8% of customers who buy the above
+               also buy this product
+   Lift: 21.33× more likely than random
+   EXTREMELY STRONG - Pre-bundle these items
 
 2. ROSES REGENCY TEACUP AND SAUCER
-   📊 Confidence: 74.3% of customers who buy the above
-                 also buy this product
-   🚀 Lift: 20.69× more likely than random
-   🔥 EXTREMELY STRONG - Pre-bundle these items
+   Confidence: 74.3% of customers who buy the above
+               also buy this product
+   Lift: 20.69× more likely than random
+   EXTREMELY STRONG - Pre-bundle these items
 
 3. GREEN REGENCY TEACUP (with Roses)
-   📊 Confidence: 80.7% of customers who buy the above
-                 also buy this product
-   🚀 Lift: 19.17× more likely than random
-   🔥 EXTREMELY STRONG - Pre-bundle these items
+   Confidence: 80.7% of customers who buy the above
+               also buy this product
+   Lift: 19.17× more likely than random
+   EXTREMELY STRONG - Pre-bundle these items
 
 ======================================================================
 ```
@@ -1058,9 +1058,9 @@ for rec in recommendations:
 ```
 [Product: Pink Regency Teacup - £12.99]
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+----------------------------------------------------------------------
 Customers also bought:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+----------------------------------------------------------------------
 
 [Image]  Green Regency Teacup
          90% buy together

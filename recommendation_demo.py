@@ -16,7 +16,7 @@ def load_association_rules():
         rules = pd.read_csv('data/processed/association_rules.csv')
         return rules
     except FileNotFoundError:
-        print("❌ Association rules not found. Please run the analysis first:")
+        print("ERROR: Association rules not found. Please run the analysis first:")
         print("   python run_analysis.py")
         sys.exit(1)
 
@@ -53,17 +53,17 @@ def get_recommendations(product_name, rules_df, top_n=5):
 def display_recommendation(product, recommendations):
     """Display recommendations in a user-friendly format"""
     print("\n" + "="*70)
-    print(f"🛍️  PRODUCT RECOMMENDATION ENGINE")
+    print(f"PRODUCT RECOMMENDATION ENGINE")
     print("="*70)
-    print(f"\n📦 Customer is viewing: {product}")
-    print(f"⏰ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"\nCustomer is viewing: {product}")
+    print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     if recommendations is None or recommendations.empty:
-        print("\n❌ No recommendations available for this product")
+        print("\nNo recommendations available for this product")
         print("   (Product may not have strong associations)")
         return
     
-    print("\n✨ RECOMMENDED PRODUCTS (Based on customer behavior patterns):")
+    print("\nRECOMMENDED PRODUCTS (Based on customer behavior patterns):")
     print("-" * 70)
     
     for idx, (_, row) in enumerate(recommendations.iterrows(), 1):
@@ -71,19 +71,19 @@ def display_recommendation(product, recommendations):
         lift_value = row['lift']
         
         print(f"\n{idx}. {row['consequents']}")
-        print(f"   📊 Confidence: {confidence_pct:.1f}% of customers who buy the above")
-        print(f"                 also buy this product")
-        print(f"   🚀 Lift: {lift_value:.2f}× more likely than random")
+        print(f"   Confidence: {confidence_pct:.1f}% of customers who buy the above")
+        print(f"               also buy this product")
+        print(f"   Lift: {lift_value:.2f}x more likely than random")
         
         # Interpret the strength
         if lift_value > 15:
-            strength = "🔥 EXTREMELY STRONG - Pre-bundle these items"
+            strength = "EXTREMELY STRONG - Pre-bundle these items"
         elif lift_value > 10:
-            strength = "⭐ VERY STRONG - Highly recommend"
+            strength = "VERY STRONG - Highly recommend"
         elif lift_value > 5:
-            strength = "✅ STRONG - Good recommendation"
+            strength = "STRONG - Good recommendation"
         else:
-            strength = "➡️  MODERATE - Consider showing"
+            strength = "MODERATE - Consider showing"
         
         print(f"   {strength}")
     
@@ -92,18 +92,18 @@ def display_recommendation(product, recommendations):
 def interactive_demo():
     """Run interactive recommendation demo"""
     print("\n" + "="*70)
-    print("🎯 RETAIL INSIGHT - PRODUCT RECOMMENDATION SYSTEM")
+    print("RETAIL INSIGHT - PRODUCT RECOMMENDATION SYSTEM")
     print("="*70)
     print("\nThis system uses Market Basket Analysis to recommend products")
     print("based on real customer purchase patterns.\n")
     
     # Load rules
-    print("📂 Loading association rules...")
+    print("Loading association rules...")
     rules = load_association_rules()
-    print(f"✅ Loaded {len(rules)} product association rules")
+    print(f"Loaded {len(rules)} product association rules")
     
     # Show available products with rules
-    print("\n📋 Products with recommendations available:")
+    print("\nProducts with recommendations available:")
     unique_products = set()
     for antecedents in rules['antecedents']:
         unique_products.add(antecedents)
@@ -120,10 +120,10 @@ def interactive_demo():
     print("-"*70)
     
     while True:
-        user_input = input("\n🔍 Product name: ").strip()
+        user_input = input("\nProduct name: ").strip()
         
         if user_input.lower() in ['quit', 'exit', 'q']:
-            print("\n👋 Thank you for using the recommendation system!")
+            print("\nThank you for using the recommendation system!")
             break
         
         if not user_input:
@@ -135,7 +135,7 @@ def interactive_demo():
 def demo_examples():
     """Run pre-defined examples to showcase the system"""
     print("\n" + "="*70)
-    print("🎯 RETAIL INSIGHT - RECOMMENDATION SYSTEM DEMO")
+    print("RETAIL INSIGHT - RECOMMENDATION SYSTEM DEMO")
     print("="*70)
     print("\nDemonstrating how the system works with real examples...\n")
     
@@ -152,10 +152,10 @@ def demo_examples():
     for product in example_products:
         recommendations = get_recommendations(product, rules, top_n=3)
         display_recommendation(product, recommendations)
-        input("\n⏎ Press Enter to see next example...")
+        input("\nPress Enter to see next example...")
     
     print("\n" + "="*70)
-    print("📊 HOW THIS WORKS:")
+    print("HOW THIS WORKS:")
     print("="*70)
     print("""
 1. **Data Collection**: We analyzed 111,302 transactions from VIP customers
@@ -165,10 +165,10 @@ def demo_examples():
    - Minimum confidence: 60% (correct 6/10 times)
    
 3. **Association Rules**: Generated 20 high-confidence rules
-   - Example: "Pink Teacup → Green Teacup" (90% confidence, 21.3× lift)
+   - Example: "Pink Teacup -> Green Teacup" (90% confidence, 21.3x lift)
    
 4. **Real-Time Recommendations**: When customer views/adds product A:
-   - System finds all rules where A is antecedent (A → B)
+   - System finds all rules where A is antecedent (A -> B)
    - Sorts by lift (strongest associations first)
    - Returns top N recommendations
    
@@ -184,17 +184,17 @@ def demo_examples():
     """)
     
     print("\n" + "="*70)
-    print("✅ This project is EXCELLENT for demonstrating:")
+    print("This project is EXCELLENT for demonstrating:")
     print("="*70)
     print("""
-✓ Machine Learning: Unsupervised learning (K-Means + Apriori)
-✓ Data Science: End-to-end pipeline (data → insights → action)
-✓ Business Impact: Quantified results (5% customers = 47.7% revenue)
-✓ Recommendation Systems: Practical implementation
-✓ Production-Ready: Automated script + interactive dashboard
-✓ Clean Code: Professional structure, documentation, testing
+Machine Learning: Unsupervised learning (K-Means + Apriori)
+Data Science: End-to-end pipeline (data -> insights -> action)
+Business Impact: Quantified results (5% customers = 47.7% revenue)
+Recommendation Systems: Practical implementation
+Production-Ready: Automated script + interactive dashboard
+Clean Code: Professional structure, documentation, testing
 
-📈 Project Strengths:
+Project Strengths:
 - Real dataset (541K transactions from UCI)
 - Statistical rigor (confidence, lift, support metrics)
 - Actionable insights (product bundles, customer segments)

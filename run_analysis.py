@@ -33,7 +33,7 @@ def main():
     # Check for dataset
     dataset_path = 'data/raw/online_retail_II.xlsx'
     if not os.path.exists(dataset_path):
-        print(f'\n❌ ERROR: Dataset not found at {dataset_path}')
+        print(f'\nERROR: Dataset not found at {dataset_path}')
         print('Please download the Online Retail II dataset from:')
         print('https://archive.ics.uci.edu/ml/datasets/Online+Retail+II')
         return
@@ -42,17 +42,17 @@ def main():
     print_section('STEP 1: DATA LOADING & CLEANING')
     
     df = pd.read_excel(dataset_path)
-    print(f'✓ Loaded: {len(df):,} transactions')
+    print(f'Loaded: {len(df):,} transactions')
     
     df_clean = df.dropna(subset=['CustomerID'])
     df_clean = df_clean[df_clean['Quantity'] > 0]
     df_clean = df_clean[df_clean['UnitPrice'] > 0]
     df_clean['TotalPrice'] = df_clean['Quantity'] * df_clean['UnitPrice']
     
-    print(f'✓ After cleaning: {len(df_clean):,} transactions ({len(df_clean)/len(df)*100:.1f}% retained)')
-    print(f'✓ Unique customers: {df_clean["CustomerID"].nunique():,}')
-    print(f'✓ Total revenue: £{df_clean["TotalPrice"].sum():,.2f}')
-    print(f'✓ Date range: {df_clean["InvoiceDate"].min()} to {df_clean["InvoiceDate"].max()}')
+    print(f'After cleaning: {len(df_clean):,} transactions ({len(df_clean)/len(df)*100:.1f}% retained)')
+    print(f'Unique customers: {df_clean["CustomerID"].nunique():,}')
+    print(f'Total revenue: £{df_clean["TotalPrice"].sum():,.2f}')
+    print(f'Date range: {df_clean["InvoiceDate"].min()} to {df_clean["InvoiceDate"].max()}')
     
     # STEP 2: RFM Feature Engineering
     print_section('STEP 2: RFM FEATURE ENGINEERING')
@@ -68,7 +68,7 @@ def main():
         'TotalPrice': 'Monetary'
     })
     
-    print(f'✓ RFM features computed for {len(rfm):,} customers')
+    print(f'RFM features computed for {len(rfm):,} customers')
     print(f'\nRFM Statistics:')
     print(f'  Recency (days):     Mean={rfm["Recency"].mean():.0f}, Median={rfm["Recency"].median():.0f}, Max={rfm["Recency"].max():.0f}')
     print(f'  Frequency (orders): Mean={rfm["Frequency"].mean():.1f}, Median={rfm["Frequency"].median():.0f}, Max={rfm["Frequency"].max():.0f}')
@@ -77,7 +77,7 @@ def main():
     # Save RFM data
     os.makedirs('data/processed', exist_ok=True)
     rfm.to_csv('data/processed/rfm_features.csv')
-    print(f'\n✓ RFM features saved to: data/processed/rfm_features.csv')
+    print(f'\nRFM features saved to: data/processed/rfm_features.csv')
     
     # STEP 3: Customer Segmentation
     print_section('STEP 3: CUSTOMER SEGMENTATION (K-MEANS)')
@@ -88,8 +88,8 @@ def main():
     kmeans_final = KMeans(n_clusters=4, random_state=42, n_init=10)
     rfm['Cluster'] = kmeans_final.fit_predict(rfm_scaled)
     
-    print(f'✓ K-Means clustering completed (K=4)')
-    print(f'✓ Inertia (WCSS): {kmeans_final.inertia_:.2f}')
+    print(f'K-Means clustering completed (K=4)')
+    print(f'Inertia (WCSS): {kmeans_final.inertia_:.2f}')
     
     print(f'\nCUSTOMER SEGMENT PROFILES:')
     print('=' * 110)
@@ -120,7 +120,7 @@ def main():
     
     # Save segmentation results
     rfm.to_csv('data/processed/customer_segments.csv')
-    print(f'\n✓ Customer segments saved to: data/processed/customer_segments.csv')
+    print(f'\nCustomer segments saved to: data/processed/customer_segments.csv')
     
     # STEP 4: Market Basket Analysis
     print_section('STEP 4: MARKET BASKET ANALYSIS (APRIORI ALGORITHM)')
@@ -128,21 +128,21 @@ def main():
     vip_customers = rfm[rfm['Cluster'].isin([2, 3])].index
     vip_transactions = df_clean[df_clean['CustomerID'].isin(vip_customers)]
     
-    print(f'✓ Analyzing {len(vip_transactions):,} transactions from VIP/Elite segments')
-    print(f'✓ VIP/Elite customers: {len(vip_customers):,} ({len(vip_customers)/len(rfm)*100:.1f}% of base)')
+    print(f'Analyzing {len(vip_transactions):,} transactions from VIP/Elite segments')
+    print(f'VIP/Elite customers: {len(vip_customers):,} ({len(vip_customers)/len(rfm)*100:.1f}% of base)')
     
     basket = vip_transactions.groupby(['InvoiceNo', 'Description'])['Quantity'].sum().unstack().fillna(0)
     basket_binary = (basket > 0).astype(int)
     
-    print(f'✓ Transaction matrix: {basket_binary.shape[0]:,} invoices × {basket_binary.shape[1]:,} products')
+    print(f'Transaction matrix: {basket_binary.shape[0]:,} invoices × {basket_binary.shape[1]:,} products')
     
     frequent_itemsets = apriori(basket_binary, min_support=0.02, use_colnames=True)
-    print(f'✓ Discovered {len(frequent_itemsets)} frequent itemsets (min support: 2%)')
+    print(f'Discovered {len(frequent_itemsets)} frequent itemsets (min support: 2%)')
     
     rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.6)
     rules = rules.sort_values('lift', ascending=False)
     
-    print(f'✓ Generated {len(rules)} association rules (min confidence: 60%)')
+    print(f'Generated {len(rules)} association rules (min confidence: 60%)')
     
     print(f'\nTOP 15 PRODUCT ASSOCIATIONS:')
     print('=' * 110)
@@ -156,7 +156,7 @@ def main():
     
     # Save association rules
     rules.to_csv('data/processed/association_rules.csv', index=False)
-    print(f'\n✓ Association rules saved to: data/processed/association_rules.csv')
+    print(f'\nAssociation rules saved to: data/processed/association_rules.csv')
     
     # EXECUTIVE SUMMARY
     print_header('EXECUTIVE SUMMARY')
@@ -208,5 +208,5 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        print(f'\n❌ ERROR: {str(e)}')
+        print(f'\nERROR: {str(e)}')
         print('Please ensure all dependencies are installed: pip install -r requirements.txt')
