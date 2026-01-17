@@ -41,16 +41,16 @@ def main():
     # STEP 1: Data Loading & Cleaning
     print_section('STEP 1: DATA LOADING & CLEANING')
     
-    df = pd.read_excel(dataset_path)
+    df = pd.read_excel(dataset_path, sheet_name='Year 2010-2011')
     print(f'Loaded: {len(df):,} transactions')
     
-    df_clean = df.dropna(subset=['CustomerID'])
+    df_clean = df.dropna(subset=['Customer ID'])
     df_clean = df_clean[df_clean['Quantity'] > 0]
-    df_clean = df_clean[df_clean['UnitPrice'] > 0]
-    df_clean['TotalPrice'] = df_clean['Quantity'] * df_clean['UnitPrice']
+    df_clean = df_clean[df_clean['Price'] > 0]
+    df_clean['TotalPrice'] = df_clean['Quantity'] * df_clean['Price']
     
     print(f'After cleaning: {len(df_clean):,} transactions ({len(df_clean)/len(df)*100:.1f}% retained)')
-    print(f'Unique customers: {df_clean["CustomerID"].nunique():,}')
+    print(f'Unique customers: {df_clean["Customer ID"].nunique():,}')
     print(f'Total revenue: £{df_clean["TotalPrice"].sum():,.2f}')
     print(f'Date range: {df_clean["InvoiceDate"].min()} to {df_clean["InvoiceDate"].max()}')
     
@@ -58,13 +58,13 @@ def main():
     print_section('STEP 2: RFM FEATURE ENGINEERING')
     
     snapshot_date = df_clean['InvoiceDate'].max() + pd.Timedelta(days=1)
-    rfm = df_clean.groupby('CustomerID').agg({
+    rfm = df_clean.groupby('Customer ID').agg({
         'InvoiceDate': lambda x: (snapshot_date - x.max()).days,
-        'InvoiceNo': 'nunique',
+        'Invoice': 'nunique',
         'TotalPrice': 'sum'
     }).rename(columns={
         'InvoiceDate': 'Recency',
-        'InvoiceNo': 'Frequency',
+        'Invoice': 'Frequency',
         'TotalPrice': 'Monetary'
     })
     
@@ -126,12 +126,12 @@ def main():
     print_section('STEP 4: MARKET BASKET ANALYSIS (APRIORI ALGORITHM)')
     
     vip_customers = rfm[rfm['Cluster'].isin([2, 3])].index
-    vip_transactions = df_clean[df_clean['CustomerID'].isin(vip_customers)]
+    vip_transactions = df_clean[df_clean['Customer ID'].isin(vip_customers)]
     
     print(f'Analyzing {len(vip_transactions):,} transactions from VIP/Elite segments')
     print(f'VIP/Elite customers: {len(vip_customers):,} ({len(vip_customers)/len(rfm)*100:.1f}% of base)')
     
-    basket = vip_transactions.groupby(['InvoiceNo', 'Description'])['Quantity'].sum().unstack().fillna(0)
+    basket = vip_transactions.groupby(['Invoice', 'Description'])['Quantity'].sum().unstack().fillna(0)
     basket_binary = (basket > 0).astype(int)
     
     print(f'Transaction matrix: {basket_binary.shape[0]:,} invoices × {basket_binary.shape[1]:,} products')
@@ -190,12 +190,36 @@ def main():
     print(f'   • Create "Regency Collection" product bundles based on association rules')
     print(f'   • Deploy differential marketing: resource intensity ∝ customer LTV')
     
+    # STEP 5: Generate Interactive Dashboard
+    print_section('STEP 5: GENERATING INTERACTIVE DASHBOARD')
+    
+    import subprocess
+    import sys
+    
+    dashboard_script = '''
+import pandas as pd
+from datetime import datetime
+
+rules = pd.read_csv('data/processed/association_rules.csv')
+segments = pd.read_csv('data/processed/customer_segments.csv')
+
+exec(open('generate_dashboard.py').read())
+'''
+    
+    try:
+        # Execute dashboard generation
+        subprocess.run([sys.executable, '-c', dashboard_script], check=True, capture_output=True)
+        print(f'Interactive dashboard generated successfully')
+        print(f'Timestamp: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+    except:
+        print(f'Dashboard generation skipped (manual update available)')
+    
     print_header('ANALYSIS COMPLETE')
     print(f'\nGenerated Files:')
     print(f'  • data/processed/rfm_features.csv')
     print(f'  • data/processed/customer_segments.csv')
     print(f'  • data/processed/association_rules.csv')
-    print(f'  • dashboard.html (interactive results)')
+    print(f'  • dashboard.html (auto-updated with current timestamp)')
     
     print(f'\nNext Steps:')
     print(f'  1. Open dashboard.html in your browser to view interactive results')

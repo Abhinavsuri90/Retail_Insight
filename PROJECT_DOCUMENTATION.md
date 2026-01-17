@@ -1130,17 +1130,17 @@ Hi [Name],
 We noticed you recently bought Pink Regency Teacup.
 Based on what similar customers purchased, you might love:
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+----------------------------------------------------------------------
 
-🌸 Green Regency Teacup
+Green Regency Teacup
    Perfect to complete your collection
    [Shop Now]
 
-🌹 Roses Regency Teacup
+Roses Regency Teacup
    90% of customers buy this too
    [Shop Now]
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+----------------------------------------------------------------------
 Use code COMPLETE10 for 10% off!
 ```
 

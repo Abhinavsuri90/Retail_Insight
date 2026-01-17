@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Segmentation Analytics Dashboard</title>
+    <title>Retail Insight - ML Analytics Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -16,10 +16,11 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
             color: #333;
+            line-height: 1.6;
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -30,147 +31,121 @@
         .header {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
-            padding: 40px;
+            padding: 50px 40px;
             text-align: center;
+            position: relative;
         }
         
         .header h1 {
-            font-size: 2.5em;
+            font-size: 3em;
             margin-bottom: 10px;
             font-weight: 300;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
         }
         
-        .header p {
-            font-size: 1.1em;
+        .header .subtitle {
+            font-size: 1.3em;
             opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .timestamp {
+            background: rgba(255,255,255,0.1);
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.95em;
+            margin-top: 15px;
+        }
+        
+        .timestamp strong {
+            color: #ffd700;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 2em;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
         }
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            padding: 40px;
-            background: #f8f9fa;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
         }
         
         .stat-card {
-            background: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
         }
         
         .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
         
         .stat-value {
             font-size: 2.5em;
             font-weight: bold;
-            color: #667eea;
-            margin: 10px 0;
-        }
-        
-        .stat-label {
-            font-size: 0.9em;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .content-section {
-            padding: 40px;
-        }
-        
-        .section-title {
-            font-size: 2em;
-            margin-bottom: 30px;
-            color: #1e3c72;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 10px;
-        }
-        
-        .cluster-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-        
-        .cluster-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 25px;
-            border-radius: 15px;
-            border-left: 5px solid;
-        }
-        
-        .cluster-card.at-risk {
-            border-left-color: #e74c3c;
-        }
-        
-        .cluster-card.loyal {
-            border-left-color: #3498db;
-        }
-        
-        .cluster-card.vip {
-            border-left-color: #f39c12;
-        }
-        
-        .cluster-card.elite {
-            border-left-color: #2ecc71;
-        }
-        
-        .cluster-card h3 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-            color: #2c3e50;
-        }
-        
-        .cluster-stat {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-        }
-        
-        .cluster-stat:last-child {
-            border-bottom: none;
-        }
-        
-        .cluster-stat strong {
-            color: #34495e;
-        }
-        
-        .insights-section {
-            background: #ecf0f1;
-            padding: 40px;
-        }
-        
-        .insight-box {
-            background: white;
-            padding: 25px;
-            margin: 20px 0;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .insight-box h4 {
-            color: #1e3c72;
-            font-size: 1.3em;
             margin-bottom: 10px;
         }
         
-        .insight-box ul {
-            margin-left: 20px;
-            line-height: 1.8;
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .insights-box {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .insights-box h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .insights-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .insights-box li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .insights-box li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.3em;
         }
         
         .table-container {
             overflow-x: auto;
-            margin: 30px 0;
+            margin-top: 20px;
         }
         
         table {
@@ -179,11 +154,10 @@
             background: white;
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         th {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: #1e3c72;
             color: white;
             padding: 15px;
             text-align: left;
@@ -192,348 +166,400 @@
         
         td {
             padding: 15px;
-            border-bottom: 1px solid #ecf0f1;
+            border-bottom: 1px solid #eee;
         }
         
         tr:hover {
             background: #f8f9fa;
         }
         
-        .highlight {
-            background: #fff3cd;
-            padding: 2px 6px;
-            border-radius: 3px;
+        .segment-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
             font-weight: bold;
+        }
+        
+        .badge-0 { background: #ffc107; color: #000; }
+        .badge-1 { background: #28a745; color: #fff; }
+        .badge-2 { background: #dc3545; color: #fff; }
+        .badge-3 { background: #6f42c1; color: #fff; }
+        
+        .metric-highlight {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #333;
         }
         
         .footer {
-            background: #2c3e50;
+            background: #1e3c72;
             color: white;
-            text-align: center;
             padding: 30px;
-            font-size: 0.9em;
+            text-align: center;
         }
         
-        .badge {
-            display: inline-block;
-            padding: 5px 12px;
+        .project-info {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            padding: 40px;
+            margin-bottom: 40px;
+            border-radius: 15px;
+        }
+        
+        .project-info h2 {
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        
+        .project-info p {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .tech-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: bold;
-            margin: 5px;
-        }
-        
-        .badge.high {
-            background: #2ecc71;
-            color: white;
-        }
-        
-        .badge.medium {
-            background: #f39c12;
-            color: white;
-        }
-        
-        .badge.low {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.8em;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .cluster-grid {
-                grid-template-columns: 1fr;
-            }
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>CUSTOMER SEGMENTATION ANALYTICS</h1>
-            <p>Machine Learning-Driven Customer Intelligence Dashboard</p>
-            <p style="opacity: 0.7; margin-top: 10px;">Online Retail Dataset Analysis | December 2009 - December 2011</p>
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Total Transactions</div>
-                <div class="stat-value">397,884</div>
-                <p style="color: #27ae60; font-size: 0.9em;">73.4% Data Quality</p>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">Unique Customers</div>
-                <div class="stat-value">4,338</div>
-                <p style="color: #3498db; font-size: 0.9em;">Active Customer Base</p>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">Total Revenue</div>
-                <div class="stat-value">£8.9M</div>
-                <p style="color: #f39c12; font-size: 0.9em;">24-Month Period</p>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">Customer Segments</div>
-                <div class="stat-value">4</div>
-                <p style="color: #9b59b6; font-size: 0.9em;">K-Means Clustering</p>
+            <h1>RETAIL INSIGHT</h1>
+            <div class="subtitle">Customer Segmentation & Product Recommendation Analytics</div>
+            <div class="timestamp">
+                <strong>Last Updated:</strong> 2026-01-17 13:25:49
             </div>
         </div>
         
-        <div class="content-section">
-            <h2 class="section-title">Customer Segments Overview</h2>
+        <div class="main-content">
+            <!-- Project Overview -->
+            <div class="project-info">
+                <h2>Project Overview</h2>
+                <p>
+                    This dashboard presents the results of a comprehensive machine learning analysis 
+                    on retail transaction data from the UCI Online Retail II dataset. Using advanced 
+                    unsupervised learning techniques, we've identified distinct customer segments and 
+                    discovered high-value product association patterns.
+                </p>
+                <p>
+                    <strong>Key Achievements:</strong> Analyzed 4,338 customers across 397,885 
+                    transactions, identified 4 behavioral segments, and generated 20 high-confidence 
+                    product recommendations with up to 21.3× lift.
+                </p>
+                <div class="tech-stack">
+                    <span class="tech-badge">K-Means Clustering</span>
+                    <span class="tech-badge">Apriori Algorithm</span>
+                    <span class="tech-badge">RFM Analysis</span>
+                    <span class="tech-badge">Python/Pandas</span>
+                    <span class="tech-badge">Scikit-learn</span>
+                    <span class="tech-badge">MLxtend</span>
+                </div>
+            </div>
             
-            <div class="cluster-grid">
-                <div class="cluster-card at-risk">
-                    <h3>At-Risk Customers</h3>
-                    <div class="cluster-stat">
-                        <span><strong>Population:</strong></span>
-                        <span>3,054 (70.4%)</span>
+            <!-- Key Metrics -->
+            <div class="section">
+                <h2 class="section-title">Key Performance Metrics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">4,338</div>
+                        <div class="stat-label">Total Customers Analyzed</div>
                     </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Recency:</strong></span>
-                        <span>44 days</span>
+                    <div class="stat-card">
+                        <div class="stat-value">4</div>
+                        <div class="stat-label">Customer Segments</div>
                     </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Frequency:</strong></span>
-                        <span>3.7 orders</span>
+                    <div class="stat-card">
+                        <div class="stat-value">20</div>
+                        <div class="stat-label">Association Rules</div>
                     </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Lifetime Value:</strong></span>
-                        <span>£1,359</span>
+                    <div class="stat-card">
+                        <div class="stat-value">21.3×</div>
+                        <div class="stat-label">Maximum Lift Score</div>
                     </div>
-                    <div style="margin-top: 15px;">
-                        <span class="badge low">High Churn Risk</span>
+                    <div class="stat-card">
+                        <div class="stat-value">71.7%</div>
+                        <div class="stat-label">Average Confidence</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">92.0%</div>
+                        <div class="stat-label">Highest Confidence</div>
                     </div>
                 </div>
+            </div>
+            
+            <!-- Customer Segmentation Results -->
+            <div class="section">
+                <h2 class="section-title">Customer Segmentation Analysis</h2>
                 
-                <div class="cluster-card loyal">
-                    <h3>Loyal Customers</h3>
-                    <div class="cluster-stat">
-                        <span><strong>Population:</strong></span>
-                        <span>1,067 (24.6%)</span>
-                    </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Recency:</strong></span>
-                        <span>248 days</span>
-                    </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Frequency:</strong></span>
-                        <span>1.6 orders</span>
-                    </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Lifetime Value:</strong></span>
-                        <span>£481</span>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <span class="badge medium">Steady Revenue</span>
-                    </div>
-                </div>
-                
-                <div class="cluster-card vip">
-                    <h3>VIP Customers</h3>
-                    <div class="cluster-stat">
-                        <span><strong>Population:</strong></span>
-                        <span>13 (0.3%)</span>
-                    </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Recency:</strong></span>
-                        <span>7 days</span>
-                    </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Frequency:</strong></span>
-                        <span>82.5 orders</span>
-                    </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Lifetime Value:</strong></span>
-                        <span class="highlight">£127,338</span>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <span class="badge high">Ultra High Value</span>
-                    </div>
-                </div>
-                
-                <div class="cluster-card elite">
-                    <h3>Elite Whales</h3>
-                    <div class="cluster-stat">
-                        <span><strong>Population:</strong></span>
-                        <span>204 (4.7%)</span>
-                    </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Recency:</strong></span>
-                        <span>16 days</span>
-                    </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Frequency:</strong></span>
-                        <span>22.3 orders</span>
-                    </div>
-                    <div class="cluster-stat">
-                        <span><strong>Avg Lifetime Value:</strong></span>
-                        <span class="highlight">£12,709</span>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <span class="badge high">Premium Segment</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="insights-section">
-            <h2 class="section-title">Key Business Insights</h2>
-            
-            <div class="insight-box">
-                <h4>Pareto Principle Validation</h4>
-                <ul>
-                    <li><strong>5% of customers (VIP + Elite)</strong> generate <span class="highlight">47.7% of total revenue</span></li>
-                    <li>VIP/Elite segments contribute <strong>£4.2 million</strong> in revenue</li>
-                    <li>Average VIP customer worth <strong>£127,338</strong> - 94× the average customer</li>
-                </ul>
-            </div>
-            
-            <div class="insight-box">
-                <h4>Churn Risk Identification</h4>
-                <ul>
-                    <li><strong>70.4% of customer base</strong> classified as At-Risk</li>
-                    <li>Average inactivity: <strong>44 days</strong> (requires win-back campaigns)</li>
-                    <li>Low engagement patterns indicate high churn probability</li>
-                </ul>
-            </div>
-            
-            <div class="insight-box">
-                <h4>Revenue Concentration</h4>
-                <ul>
-                    <li>Top 5% customers: <strong>217 individuals</strong> driving half of business</li>
-                    <li>Elite Whales purchase <strong>22.3 orders on average</strong> (14× higher than base)</li>
-                    <li>VIP customers extremely active: <strong>82.5 average orders</strong></li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="content-section">
-            <h2 class="section-title">Market Basket Analysis Results</h2>
-            
-            <p style="margin-bottom: 30px; font-size: 1.1em; color: #555;">
-                Analysis of <strong>111,302 transactions</strong> from VIP/Elite customers revealed <strong>20 high-confidence product associations</strong> 
-                with average confidence of <span class="highlight">71.7%</span> and maximum lift of <span class="highlight">21.3×</span>.
-            </p>
-            
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Product Bundle</th>
-                            <th>Confidence</th>
-                            <th>Lift</th>
-                            <th>Pattern Type</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Roses Regency Teacup → Green Regency Teacup</td>
-                            <td>90%</td>
-                            <td class="highlight">21.3×</td>
-                            <td><span class="badge high">Set Collection</span></td>
-                        </tr>
-                        <tr>
-                            <td>Pink Regency Teacup → Roses Regency Teacup</td>
-                            <td>74%</td>
-                            <td class="highlight">20.7×</td>
-                            <td><span class="badge high">Set Collection</span></td>
-                        </tr>
-                        <tr>
-                            <td>Green Regency Teacup → Pink Regency Teacup</td>
-                            <td>69%</td>
-                            <td class="highlight">19.2×</td>
-                            <td><span class="badge high">Set Collection</span></td>
-                        </tr>
-                        <tr>
-                            <td>Gardeners Kneeling Pad (Tea) → Kneeling Pad (Keep Calm)</td>
-                            <td>74%</td>
-                            <td class="highlight">18.5×</td>
-                            <td><span class="badge medium">Theme Match</span></td>
-                        </tr>
-                        <tr>
-                            <td>Green Regency Set → Roses Regency Teacup</td>
-                            <td>92%</td>
-                            <td class="highlight">18.4×</td>
-                            <td><span class="badge high">Set Collection</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="insight-box" style="margin-top: 30px;">
-                <h4>Product Association Patterns</h4>
-                <ul>
-                    <li><strong>Regency Teacup Collections:</strong> Customers buy complete color-coordinated sets (green, pink, roses)</li>
-                    <li><strong>Style Coherence:</strong> Purchases demonstrate aesthetic alignment and theme-based buying</li>
-                    <li><strong>Cross-Sell Opportunities:</strong> High lift values (>18×) indicate strong bundling potential</li>
-                    <li><strong>Non-Random Behavior:</strong> Statistical significance validates intentional purchase patterns</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="content-section" style="background: #f8f9fa;">
-            <h2 class="section-title">Methodology & Technical Implementation</h2>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 30px;">
-                <div class="insight-box">
-                    <h4>Data Preprocessing</h4>
+                <div class="insights-box">
+                    <h3>Segmentation Insights</h3>
                     <ul>
-                        <li>Missing value treatment</li>
-                        <li>Invalid transaction filtering</li>
-                        <li>Feature engineering (TotalPrice)</li>
-                        <li>73.4% data retention rate</li>
+                        <li><strong>Segment 0 - At-Risk Customers (3,054 customers, 70.4%):</strong> 
+                            Average 44 days since last purchase. Require targeted win-back campaigns with personalized offers.</li>
+                        <li><strong>Segment 1 - Loyal Customers (1,067 customers, 24.6%):</strong> 
+                            Stable purchasing pattern. Ideal candidates for loyalty programs and cross-selling opportunities.</li>
+                        <li><strong>Segment 2 - VIP Customers (13 customers, 0.3%):</strong> 
+                            Ultra high-value with average LTV of £127,338. Require white-glove service and exclusive access.</li>
+                        <li><strong>Segment 3 - Elite Customers (204 customers, 4.7%):</strong> 
+                            Premium segment with average LTV of £12,709. Focus on retention and premium product recommendations.</li>
                     </ul>
                 </div>
                 
-                <div class="insight-box">
-                    <h4>RFM Feature Engineering</h4>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Segment</th>
+                                <th>Customers</th>
+                                <th>Percentage</th>
+                                <th>Category</th>
+                                <th>Strategy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="segment-badge badge-0">Segment 0</span></td>
+                                <td>3,054</td>
+                                <td>70.4%</td>
+                                <td>At-Risk</td>
+                                <td>Win-back campaigns, re-engagement offers</td>
+                            </tr>
+                            <tr>
+                                <td><span class="segment-badge badge-1">Segment 1</span></td>
+                                <td>1,067</td>
+                                <td>24.6%</td>
+                                <td>Loyal</td>
+                                <td>Loyalty programs, cross-sell opportunities</td>
+                            </tr>
+                            <tr>
+                                <td><span class="segment-badge badge-2">Segment 2</span></td>
+                                <td>13</td>
+                                <td>0.3%</td>
+                                <td>VIP</td>
+                                <td>Concierge service, exclusive previews</td>
+                            </tr>
+                            <tr>
+                                <td><span class="segment-badge badge-3">Segment 3</span></td>
+                                <td>204</td>
+                                <td>4.7%</td>
+                                <td>Elite</td>
+                                <td>Premium recommendations, early access</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Product Recommendations -->
+            <div class="section">
+                <h2 class="section-title">Product Association Rules</h2>
+                
+                <div class="insights-box">
+                    <h3>Market Basket Analysis Results</h3>
                     <ul>
-                        <li>Recency calculation (days since last purchase)</li>
-                        <li>Frequency aggregation (unique orders)</li>
-                        <li>Monetary summation (total revenue)</li>
-                        <li>Z-score normalization</li>
+                        <li>Analyzed <span class="metric-highlight">111,302 transactions</span> from VIP and Elite customer segments</li>
+                        <li>Discovered <span class="metric-highlight">20 high-confidence</span> product association patterns</li>
+                        <li>Maximum lift of <span class="metric-highlight">21.3×</span> indicates extremely strong product relationships</li>
+                        <li>Average confidence of <span class="metric-highlight">71.7%</span> ensures reliable recommendations</li>
+                        <li>Regency Teacup collection shows strongest bundling potential (21.3× lift)</li>
+                    </ul>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Product A</th>
+                                <th>Product B</th>
+                                <th>Confidence</th>
+                                <th>Lift</th>
+                                <th>Support</th>
+                                <th>Recommendation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            <tr>
+                                <td><strong>1</strong></td>
+                                <td>ROSES REGENCY TEACUP AND SAUCER , PINK REGENCY ...</td>
+                                <td>GREEN REGENCY TEACUP AND SAUCER</td>
+                                <td>89.8%</td>
+                                <td><span class="metric-highlight">21.33×</span></td>
+                                <td>2.7%</td>
+                                <td>EXTREMELY STRONG - Pre-bundle</td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>2</strong></td>
+                                <td>GREEN REGENCY TEACUP AND SAUCER</td>
+                                <td>ROSES REGENCY TEACUP AND SAUCER , PINK REGENCY ...</td>
+                                <td>63.3%</td>
+                                <td><span class="metric-highlight">21.33×</span></td>
+                                <td>2.7%</td>
+                                <td>EXTREMELY STRONG - Pre-bundle</td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>3</strong></td>
+                                <td>PINK REGENCY TEACUP AND SAUCER</td>
+                                <td>ROSES REGENCY TEACUP AND SAUCER , GREEN REGENCY...</td>
+                                <td>74.3%</td>
+                                <td><span class="metric-highlight">20.69×</span></td>
+                                <td>2.7%</td>
+                                <td>EXTREMELY STRONG - Pre-bundle</td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>4</strong></td>
+                                <td>ROSES REGENCY TEACUP AND SAUCER , GREEN REGENCY...</td>
+                                <td>PINK REGENCY TEACUP AND SAUCER</td>
+                                <td>74.3%</td>
+                                <td><span class="metric-highlight">20.69×</span></td>
+                                <td>2.7%</td>
+                                <td>EXTREMELY STRONG - Pre-bundle</td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>5</strong></td>
+                                <td>PINK REGENCY TEACUP AND SAUCER</td>
+                                <td>GREEN REGENCY TEACUP AND SAUCER</td>
+                                <td>80.7%</td>
+                                <td><span class="metric-highlight">19.17×</span></td>
+                                <td>2.9%</td>
+                                <td>EXTREMELY STRONG - Pre-bundle</td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>6</strong></td>
+                                <td>GREEN REGENCY TEACUP AND SAUCER</td>
+                                <td>PINK REGENCY TEACUP AND SAUCER</td>
+                                <td>68.8%</td>
+                                <td><span class="metric-highlight">19.17×</span></td>
+                                <td>2.9%</td>
+                                <td>EXTREMELY STRONG - Pre-bundle</td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>7</strong></td>
+                                <td>GARDENERS KNEELING PAD CUP OF TEA </td>
+                                <td>GARDENERS KNEELING PAD KEEP CALM </td>
+                                <td>73.8%</td>
+                                <td><span class="metric-highlight">18.47×</span></td>
+                                <td>2.6%</td>
+                                <td>EXTREMELY STRONG - Pre-bundle</td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>8</strong></td>
+                                <td>GARDENERS KNEELING PAD KEEP CALM </td>
+                                <td>GARDENERS KNEELING PAD CUP OF TEA </td>
+                                <td>64.0%</td>
+                                <td><span class="metric-highlight">18.47×</span></td>
+                                <td>2.6%</td>
+                                <td>EXTREMELY STRONG - Pre-bundle</td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>9</strong></td>
+                                <td>PINK REGENCY TEACUP AND SAUCER, GREEN REGENCY T...</td>
+                                <td>ROSES REGENCY TEACUP AND SAUCER </td>
+                                <td>92.0%</td>
+                                <td><span class="metric-highlight">18.43×</span></td>
+                                <td>2.7%</td>
+                                <td>EXTREMELY STRONG - Pre-bundle</td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>10</strong></td>
+                                <td>GREEN REGENCY TEACUP AND SAUCER</td>
+                                <td>ROSES REGENCY TEACUP AND SAUCER </td>
+                                <td>85.2%</td>
+                                <td><span class="metric-highlight">17.07×</span></td>
+                                <td>3.6%</td>
+                                <td>EXTREMELY STRONG - Pre-bundle</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Business Impact -->
+            <div class="section">
+                <h2 class="section-title">Business Impact & Recommendations</h2>
+                
+                <div class="insights-box">
+                    <h3>Revenue Insights</h3>
+                    <ul>
+                        <li><strong>Pareto Principle Validated:</strong> VIP and Elite segments (5% of customers) generate 47.7% of total revenue</li>
+                        <li><strong>High-Value Focus:</strong> 217 VIP/Elite customers contribute £4.2M in revenue</li>
+                        <li><strong>Cross-Sell Potential:</strong> 15-20% revenue increase possible through intelligent product bundling</li>
+                        <li><strong>ROI Impact:</strong> Cross-selling to a £10K customer yields £1K+ additional revenue</li>
                     </ul>
                 </div>
                 
-                <div class="insight-box">
-                    <h4>K-Means Clustering</h4>
+                <div class="insights-box">
+                    <h3>Strategic Recommendations</h3>
                     <ul>
-                        <li>Optimal K=4 (Elbow Method)</li>
-                        <li>Silhouette validation (>0.45)</li>
-                        <li>10 random initializations</li>
-                        <li>Fixed random seed (reproducibility)</li>
+                        <li><strong>VIP Retention Program:</strong> Implement concierge service and exclusive access for top 0.3% customers</li>
+                        <li><strong>Elite Engagement:</strong> Premium product recommendations and early access programs for 4.7% Elite segment</li>
+                        <li><strong>Win-Back Campaigns:</strong> Targeted re-engagement for 70.4% At-Risk customers with >44 days inactivity</li>
+                        <li><strong>Product Bundling:</strong> Create "Regency Collection" bundles based on 21.3× lift associations</li>
+                        <li><strong>Differential Marketing:</strong> Allocate marketing resources proportional to customer lifetime value</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Methodology -->
+            <div class="section">
+                <h2 class="section-title">Methodology & Technical Details</h2>
+                
+                <div class="insights-box">
+                    <h3>Machine Learning Approach</h3>
+                    <ul>
+                        <li><strong>RFM Analysis:</strong> Calculated Recency, Frequency, Monetary metrics for each customer</li>
+                        <li><strong>K-Means Clustering:</strong> Applied with K=4 clusters (determined via Elbow Method)</li>
+                        <li><strong>Feature Scaling:</strong> StandardScaler for fair distance calculation</li>
+                        <li><strong>Apriori Algorithm:</strong> Min support 2%, min confidence 60%</li>
+                        <li><strong>Association Rules:</strong> Filtered for VIP/Elite segments to reduce noise</li>
                     </ul>
                 </div>
                 
-                <div class="insight-box">
-                    <h4>Apriori Algorithm</h4>
+                <div class="insights-box">
+                    <h3>Data Quality</h3>
                     <ul>
-                        <li>Minimum support: 2%</li>
-                        <li>Minimum confidence: 60%</li>
-                        <li>Binary transaction encoding</li>
-                        <li>Lift-based rule ranking</li>
+                        <li><strong>Dataset:</strong> UCI Online Retail II (541,909 raw transactions)</li>
+                        <li><strong>Cleaning:</strong> Removed nulls, negatives, outliers (73.4% retention rate)</li>
+                        <li><strong>Final Dataset:</strong> 397,885 transactions, 4,338 unique customers</li>
+                        <li><strong>Date Range:</strong> December 2010 - December 2011</li>
+                        <li><strong>Total Revenue:</strong> £8.9M analyzed</li>
                     </ul>
                 </div>
             </div>
         </div>
         
         <div class="footer">
-            <p><strong>Customer Segmentation & Market Basket Analysis Project</strong></p>
-            <p style="margin-top: 10px; opacity: 0.8;">
-                Advanced Machine Learning | Unsupervised Learning Techniques<br>
-                Dataset: UCI Online Retail II | Period: Dec 2009 - Dec 2011
+            <h3>Retail Insight - ML Analytics Platform</h3>
+            <p style="margin-top: 15px; opacity: 0.8;">
+                Powered by Python | Scikit-learn | Pandas | MLxtend | Last Updated: {timestamp}
             </p>
-            <p style="margin-top: 15px; font-size: 0.85em; opacity: 0.6;">
-                Generated: January 2026
+            <p style="margin-top: 10px; opacity: 0.7;">
+                This dashboard automatically updates when run_analysis.py is executed
             </p>
         </div>
     </div>
