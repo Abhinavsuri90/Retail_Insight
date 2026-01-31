@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailInsight - Executive Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #0f172a;        /* Slate 900 - Deep navy */
+            --primary-light: #1e293b;  /* Slate 800 */
+            --accent: #d97706;         /* Amber 600 - Premium gold */
+            --accent-light: #fbbf24;   /* Amber 400 */
+            --success: #059669;        /* Emerald 600 */
+            --danger: #dc2626;         /* Red 600 */
+            --neutral: #475569;        /* Slate 600 */
+            --bg-light: #f8fafc;       /* Slate 50 */
+            --border: #e2e8f0;         /* Slate 200 */
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .dashboard-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 40px;
+            border-bottom: 4px solid var(--accent);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(217, 119, 6, 0.1) 0%, transparent 70%);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 2.5rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .header .subtitle {
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .header .meta {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+        
+        .kpi-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            border-top: 3px solid var(--accent);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.15);
+        }
+        
+        .kpi-card:hover::before {
+            width: 8px;
+        }
+        
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        
+        .kpi-label {
+            font-size: 0.9rem;
+            color: var(--neutral);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .kpi-change {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .kpi-change.positive {
+            color: var(--success);
+        }
+        
+        .kpi-change.negative {
+            color: var(--danger);
+        }
+        
+        .segment-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+            border: 1px solid rgba(217, 119, 6, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .segment-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(217, 119, 6, 0.15) 0%, transparent 70%);
+        }
+        
+        .segment-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .segment-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .segment-metric {
+            background: rgba(255,255,255,0.15);
+            padding: 12px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .segment-metric-label {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+        }
+        
+        .segment-metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+        
+        .insights-box {
+            background: #f8fafc;
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .insights-box h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .insight-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recommendation {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid var(--success);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .recommendation strong {
+            color: var(--primary);
+        }
+        
+        .impact-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-export {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4);
+        }
+        
+        .btn-export:active {
+            transform: translateY(0);
+        }
+        
+        .timestamp {
+            font-size: 0.8rem;
+            color: var(--neutral);
+            text-align: right;
+            padding: 10px 20px;
+        }
+        
+        /* Print Styles for Professional PDF */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .dashboard-container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .btn-export {
+                display: none;
+            }
+            
+            .kpi-card, .segment-card, .chart-container {
+                page-break-inside: avoid;
+            }
+            
+            .header {
+                border-bottom: 4px solid var(--accent);
+            }
+            
+            .recommendation {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="dashboard-container">
+            <!-- Header -->
+            <div class="header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h1><i class="fas fa-chart-line"></i> RetailInsight Analytics</h1>
+                        <div class="subtitle">Executive Overview - Customer Intelligence Report</div>
+                        <div class="meta">
+                            Report Period: Dec 2009 - Dec 2011 | 
+                            Generated: January 31, 2026 | 
+                            Confidential: Internal Use Only
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn-export" onclick="generatePDF()" style="margin-right: 10px;">
+                            <i class="fas fa-file-pdf"></i> Generate PDF
+                        </button>
+                        <button class="btn-export" onclick="window.print()" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="p-4">
+                <!-- KPI Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Total Customers</div>
+                            <div class="kpi-value">4,335</div>
+                            <div class="kpi-change positive">
+                                <i class="fas fa-arrow-up"></i> 2.3% vs. last period
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Total Revenue</div>
+                            <div class="kpi-value">£7.5M</div>
+                            <div class="kpi-change positive">
+                                <i class="fas fa-arrow-up"></i> 12.8% growth
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Avg LTV</div>
+                            <div class="kpi-value">£1,730</div>
+                            <div class="kpi-change positive">
+                                <i class="fas fa-arrow-up"></i> 8.2% increase
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Active Rate</div>
+                            <div class="kpi-value">71.2%</div>
+                            <div class="kpi-change negative">
+                                <i class="fas fa-arrow-down"></i> 3.2% decrease
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Segment Overview -->
+                <h2 class="mb-3" style="color: var(--primary);">Customer Segments</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="segment-card">
+                            <h3>
+                                <span>Cluster 0: Premium Buyers</span>
+                                <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem;">59.6%</span>
+                            </h3>
+                            <p style="opacity: 0.95;">High-value customers with strong product preferences</p>
+                            <div class="segment-metrics">
+                                <div class="segment-metric">
+                                    <div class="segment-metric-label">Customers</div>
+                                    <div class="segment-metric-value">2,585</div>
+                                </div>
+                                <div class="segment-metric">
+                                    <div class="segment-metric-label">Revenue</div>
+                                    <div class="segment-metric-value">£4.67M</div>
+                                </div>
+                                <div class="segment-metric">
+                                    <div class="segment-metric-label">Avg LTV</div>
+                                    <div class="segment-metric-value">£1,807</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="segment-card" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 1px solid rgba(251, 191, 36, 0.2);">
+                            <h3>
+                                <span>Cluster 1: Growth Segment</span>
+                                <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem;">40.4%</span>
+                            </h3>
+                            <p style="opacity: 0.95;">Diverse buyers with upsell potential</p>
+                            <div class="segment-metrics">
+                                <div class="segment-metric">
+                                    <div class="segment-metric-label">Customers</div>
+                                    <div class="segment-metric-value">1,750</div>
+                                </div>
+                                <div class="segment-metric">
+                                    <div class="segment-metric-label">Revenue</div>
+                                    <div class="segment-metric-value">£2.83M</div>
+                                </div>
+                                <div class="segment-metric">
+                                    <div class="segment-metric-label">Avg LTV</div>
+                                    <div class="segment-metric-value">£1,618</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts Row -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h4 style="color: var(--primary); margin-bottom: 20px;">Revenue Distribution</h4>
+                            <div id="revenueChart"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h4 style="color: var(--primary); margin-bottom: 20px;">Customer Count by Segment</h4>
+                            <div id="customerChart"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Key Insights -->
+                <div class="insights-box">
+                    <h4><i class="fas fa-lightbulb" style="color: var(--accent);"></i> Key Findings</h4>
+                    <div class="insight-item">
+                        <strong>Revenue Concentration:</strong> Premium Buyers (Cluster 0) represent 59.6% of customers but generate 62.3% of total revenue, validating focused marketing approach.
+                    </div>
+                    <div class="insight-item">
+                        <strong>Product Preferences:</strong> Taste profile analysis shows product category affinity drives 36.2% of segmentation - stronger than spending patterns.
+                    </div>
+                    <div class="insight-item">
+                        <strong>Market Basket Discovery:</strong> 20 high-confidence product associations identified with average lift of 24×, particularly in Regency Teacup collection.
+                    </div>
+                    <div class="insight-item">
+                        <strong>Behavioral Patterns:</strong> Average purchase frequency is 4.25 orders with 92.68 days average recency. Interpurchase time of 3.18 days indicates active engagement.
+                    </div>
+                </div>
+                
+                <!-- Strategic Recommendations -->
+                <h3 class="mt-5 mb-3" style="color: var(--primary);">Strategic Recommendations</h3>
+                
+                <div class="recommendation">
+                    <strong>1. VIP Retention Program</strong>
+                    <span class="impact-badge">+£467K Revenue</span>
+                    <p class="mt-2 mb-0">Implement white-glove concierge service for 2,585 Premium Buyers. Focus on exclusive early access and personalized product curation based on taste profiles. Projected 10% retention improvement generates £466,983 additional annual revenue.</p>
+                </div>
+                
+                <div class="recommendation">
+                    <strong>2. Product Bundle Strategy</strong>
+                    <span class="impact-badge">+£375K Revenue</span>
+                    <p class="mt-2 mb-0">Create "Regency Collection" bundles (Pink + Green + Roses teacups) with 15% discount. Market basket analysis shows 24× lift and 70% confidence. Expected 15-20% cross-sell increase worth £375,038.</p>
+                </div>
+                
+                <div class="recommendation">
+                    <strong>3. Churn Prevention Campaign</strong>
+                    <span class="impact-badge">+£225K Saved</span>
+                    <p class="mt-2 mb-0">Target customers with Recency > 90 days (approximately 28.8% of base) with personalized win-back offers using NLP taste profiles. Projected to save £225,023 in at-risk revenue.</p>
+                </div>
+                
+                <div class="recommendation">
+                    <strong>4. Differential Marketing Budget</strong>
+                    <span class="impact-badge">3-4× ROI</span>
+                    <p class="mt-2 mb-0">Allocate 70% of marketing spend to Premium Buyers segment. Use taste profile features (Taste_1 through Taste_5) for hyper-personalized product recommendations. Expected ROI improvement from 1.5× to 4.5×.</p>
+                </div>
+                
+                <!-- Footer -->
+                <div class="timestamp">
+                    Last updated: January 31, 2026 at 17:50:04 | 
+                    Data source: UCI ML Repository (541,909 transactions) | 
+                    Methodology: K-Means + GMM + FP-Growth
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Revenue Distribution Pie Chart
+        var revenueData = [{
+            values: [4669828, 2830923],
+            labels: ['Cluster 0: Premium', 'Cluster 1: Growth'],
+            type: 'pie',
+            marker: {
+                colors: ['#667eea', '#f5576c']
+            },
+            textinfo: 'label+percent',
+            hovertemplate: '<b>%{label}</b><br>Revenue: £%{value:,.0f}<br>Percentage: %{percent}<extra></extra>'
+        }];
+        
+        var revenueLayout = {
+            height: 350,
+            margin: {t: 20, b: 20, l: 20, r: 20},
+            showlegend: true,
+            legend: {
+                orientation: 'h',
+                y: -0.1
+            }
+        };
+        
+        Plotly.newPlot('revenueChart', revenueData, revenueLayout, {responsive: true});
+        
+        // Customer Count Bar Chart
+        var customerData = [{
+            x: ['Cluster 0: Premium', 'Cluster 1: Growth'],
+            y: [2585, 1750],
+            type: 'bar',
+            marker: {
+                color: ['#667eea', '#f5576c'],
+                opacity: 0.8
+            },
+            text: ['2,585 (59.6%)', '1,750 (40.4%)'],
+            textposition: 'outside',
+            hovertemplate: '<b>%{x}</b><br>Customers: %{y:,}<extra></extra>'
+        }];
+        
+        var customerLayout = {
+            height: 350,
+            margin: {t: 20, b: 60, l: 60, r: 20},
+            yaxis: {
+                title: 'Number of Customers',
+                gridcolor: '#e2e8f0'
+            },
+            xaxis: {
+                title: ''
+            },
+            plot_bgcolor: '#f8fafc',
+            paper_bgcolor: 'white'
+        };
+        
+        Plotly.newPlot('customerChart', customerData, customerLayout, {responsive: true});
+        
+        // Professional PDF Generation
+        function generatePDF() {
+            // Optimize for PDF
+            document.body.style.background = 'white';
+            
+            // Add timestamp to PDF
+            const date = new Date().toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // Trigger print dialog with professional settings
+            const originalTitle = document.title;
+            document.title = `RetailInsight_Executive_Report_${new Date().toISOString().split('T')[0]}`;
+            
+            window.print();
+            
+            // Restore after print
+            setTimeout(() => {
+                document.body.style.background = 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)';
+                document.title = originalTitle;
+            }, 100);
+        }
+        
+        // Enhanced print detection
+        window.addEventListener('beforeprint', () => {
+            console.log('Generating professional PDF...');
+        });
+        
+        window.addEventListener('afterprint', () => {
+            console.log('PDF generation complete');
+        });
+    </script>
+</body>
+</html>

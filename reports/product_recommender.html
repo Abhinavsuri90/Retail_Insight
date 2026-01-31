@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailInsight - Product Recommender</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --accent: #d97706;
+            --accent-light: #fbbf24;
+            --success: #059669;
+            --bg-light: #f8fafc;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 4px solid var(--accent);
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(217, 119, 6, 0.1) 0%, transparent 70%);
+        }
+        
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .search-hero {
+            background: linear-gradient(135deg, var(--primary-light) 0%, #334155 100%);
+            padding: 70px 40px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .search-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.08) 0%, transparent 70%);
+        }
+        
+        .search-box {
+            max-width: 700px;
+            margin: 30px auto 0;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 22px 65px 22px 28px;
+            font-size: 1.2rem;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(15, 23, 42, 0.25);
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 16px 48px rgba(217, 119, 6, 0.2);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+        
+        .example-searches {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+        
+        .example-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .example-tag:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .recommendations-section {
+            padding: 40px;
+        }
+        
+        .recommendation-card {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .recommendation-card:hover {
+            transform: translateX(12px);
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15);
+            border-left-width: 8px;
+        }
+        
+        .rec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .rec-product {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .rec-rank {
+            background: var(--accent);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        
+        .rec-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .metric-box {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .metric-value.confidence {
+            color: var(--success);
+        }
+        
+        .metric-value.lift {
+            color: #f59e0b;
+        }
+        
+        .rec-action {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .action-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .action-badge.bundle {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .action-badge.strong {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .action-badge.consider {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        
+        .stats-bar {
+            background: #f8fafc;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        
+        .stat-item h4 {
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-item p {
+            color: #64748b;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .how-it-works {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 50px;
+            margin: 40px 0;
+            border-radius: 16px;
+            border: 1px solid rgba(217, 119, 6, 0.2);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+        }
+        
+        .how-step {
+            background: rgba(255,255,255,0.08);
+            padding: 24px;
+            margin: 18px 0;
+            border-radius: 12px;
+            border-left: 4px solid var(--accent);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .how-step:hover {
+            background: rgba(255,255,255,0.12);
+            transform: translateX(8px);
+        }
+        
+        .how-step h5 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+        
+        .no-results i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        /* Print Styles for Professional PDF */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container-main {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .search-hero {
+                page-break-after: avoid;
+            }
+            
+            .recommendation-card, .how-step {
+                page-break-inside: avoid;
+            }
+            
+            .example-tag {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-main">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-magic"></i> Intelligent Product Recommender</h1>
+            <p>AI-Powered Recommendations Based on 541,909 Real Transactions</p>
+        </div>
+        
+        <!-- Search Hero -->
+        <div class="search-hero">
+            <h2>Find Perfect Product Pairings</h2>
+            <p>Type any product name to see what customers buy together</p>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search for a product..." autocomplete="off">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            
+            <div class="example-searches">
+                Try: 
+                <span class="example-tag" onclick="searchProduct('PINK REGENCY TEACUP')">Pink Teacup</span>
+                <span class="example-tag" onclick="searchProduct('JUMBO BAG')">Jumbo Bag</span>
+                <span class="example-tag" onclick="searchProduct('ALARM CLOCK')">Alarm Clock</span>
+                <span class="example-tag" onclick="searchProduct('LUNCH BOX')">Lunch Box</span>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="recommendations-section">
+            <div id="resultsContainer">
+                <!-- Initial State -->
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h3>Start Searching</h3>
+                    <p>Type a product name above to discover intelligent recommendations</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <h4>20</h4>
+                <p>Association Rules</p>
+            </div>
+            <div class="stat-item">
+                <h4>24×</h4>
+                <p>Maximum Lift</p>
+            </div>
+            <div class="stat-item">
+                <h4>70%</h4>
+                <p>Avg Confidence</p>
+            </div>
+            <div class="stat-item">
+                <h4>243</h4>
+                <p>Frequent Itemsets</p>
+            </div>
+        </div>
+        
+        <!-- How It Works -->
+        <div class="how-it-works">
+            <h2 class="text-center mb-4"><i class="fas fa-brain"></i> How This Works</h2>
+            
+            <div class="how-step">
+                <h5><i class="fas fa-database"></i> Step 1: Transaction Analysis</h5>
+                <p>We analyzed 541,909 real customer transactions to find patterns in what products are bought together. This isn't guesswork - it's data science.</p>
+            </div>
+            
+            <div class="how-step">
+                <h5><i class="fas fa-project-diagram"></i> Step 2: FP-Growth Algorithm</h5>
+                <p>Using advanced FP-Growth algorithm (faster than traditional Apriori), we discovered 243 frequent itemsets - combinations of products that appear together frequently.</p>
+            </div>
+            
+            <div class="how-step">
+                <h5><i class="fas fa-chart-line"></i> Step 3: Association Rules</h5>
+                <p>We generated 20 high-confidence rules with metrics:</p>
+                <ul class="mb-0 mt-2">
+                    <li><strong>Support:</strong> How often items appear together (2-3% of transactions)</li>
+                    <li><strong>Confidence:</strong> Probability of buying B given A (60-89%)</li>
+                    <li><strong>Lift:</strong> How much more likely than random (6-24× stronger)</li>
+                </ul>
+            </div>
+            
+            <div class="how-step">
+                <h5><i class="fas fa-lightbulb"></i> Step 4: Smart Recommendations</h5>
+                <p>When you search for a product, we instantly match it against our association rules and show you the strongest pairings. Products with lift > 15× are bundling opportunities. Products with 70%+ confidence are strong cross-sell candidates.</p>
+            </div>
+        </div>
+        
+        <!-- Example Section -->
+        <div class="p-4" style="background: #f8fafc;">
+            <h3 class="text-center mb-4" style="color: var(--primary);">Real-World Example</h3>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 style="color: var(--accent);"><i class="fas fa-shopping-cart"></i> Customer buys:</h5>
+                            <p class="h4 mb-0">Pink Regency Teacup</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 style="color: var(--success);"><i class="fas fa-star"></i> We recommend:</h5>
+                            <p class="h4 mb-3">Green Regency Teacup</p>
+                            <div><small class="badge bg-success">83% Confidence</small> <small class="badge bg-warning text-dark">22.2× Lift</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p style="color: #64748b;"><strong>Translation:</strong> 83% of customers who buy the Pink teacup also buy the Green one - 22 times more likely than random customers. <strong>Action:</strong> Bundle them together!</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Association rules data (from your analysis)
+        const associationRules = {
+            'PINK REGENCY TEACUP': [
+                {product: 'ROSES REGENCY TEACUP AND SAUCER GREEN', confidence: 0.70, lift: 24.0, support: 0.021, action: 'Bundle these together'},
+                {product: 'GREEN REGENCY TEACUP AND SAUCER', confidence: 0.83, lift: 22.2, support: 0.025, action: 'Bundle these together'},
+                {product: 'ROSES REGENCY TEACUP AND SAUCER', confidence: 0.78, lift: 18.6, support: 0.024, action: 'Strong recommendation'}
+            ],
+            'GREEN REGENCY TEACUP': [
+                {product: 'PINK REGENCY TEACUP AND SAUCER', confidence: 0.67, lift: 22.2, support: 0.025, action: 'Bundle these together'},
+                {product: 'ROSES REGENCY TEACUP AND SAUCER', confidence: 0.78, lift: 18.5, support: 0.029, action: 'Strong recommendation'}
+            ],
+            'ROSES REGENCY TEACUP': [
+                {product: 'GREEN REGENCY TEACUP AND SAUCER', confidence: 0.69, lift: 18.5, support: 0.029, action: 'Strong recommendation'},
+                {product: 'PINK REGENCY TEACUP AND SAUCER', confidence: 0.72, lift: 24.0, support: 0.021, action: 'Bundle these together'}
+            ],
+            'DOLLY GIRL LUNCH BOX': [
+                {product: 'SPACEBOY LUNCH BOX', confidence: 0.69, lift: 18.1, support: 0.023, action: 'Bundle these together'}
+            ],
+            'SPACEBOY LUNCH BOX': [
+                {product: 'DOLLY GIRL LUNCH BOX', confidence: 0.60, lift: 18.1, support: 0.023, action: 'Strong recommendation'}
+            ],
+            'ALARM CLOCK BAKELIKE GREEN': [
+                {product: 'ALARM CLOCK BAKELIKE RED', confidence: 0.67, lift: 14.2, support: 0.029, action: 'Strong recommendation'}
+            ],
+            'ALARM CLOCK BAKELIKE RED': [
+                {product: 'ALARM CLOCK BAKELIKE GREEN', confidence: 0.60, lift: 14.2, support: 0.029, action: 'Strong recommendation'},
+                {product: 'ALARM CLOCK BAKELIKE PINK', confidence: 0.65, lift: 13.6, support: 0.021, action: 'Consider showing'}
+            ],
+            'JUMBO BAG STRAWBERRY': [
+                {product: 'JUMBO BAG RED RETROSPOT', confidence: 0.63, lift: 7.3, support: 0.022, action: 'Consider showing'}
+            ],
+            'JUMBO BAG': [
+                {product: 'JUMBO BAG RED RETROSPOT', confidence: 0.63, lift: 7.3, support: 0.029, action: 'Consider showing'}
+            ]
+        };
+        
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.toUpperCase();
+            if (query.length < 3) {
+                showNoResults('Type at least 3 characters');
+                return;
+            }
+            
+            // Find matching product
+            let found = false;
+            for (let product in associationRules) {
+                if (product.includes(query)) {
+                    displayRecommendations(product, associationRules[product]);
+                    found = true;
+                    break;
+                }
+            }
+            
+            if (!found) {
+                showNoResults('No recommendations found for "' + query + '"');
+            }
+        });
+        
+        function searchProduct(productName) {
+            document.getElementById('searchInput').value = productName;
+            const upperProduct = productName.toUpperCase();
+            
+            for (let product in associationRules) {
+                if (product.includes(upperProduct)) {
+                    displayRecommendations(product, associationRules[product]);
+                    break;
+                }
+            }
+        }
+        
+        function displayRecommendations(sourceProduct, recommendations) {
+            const container = document.getElementById('resultsContainer');
+            
+            let html = `
+                <div class="mb-4 text-center">
+                    <h3 style="color: var(--primary);">
+                        <i class="fas fa-shopping-basket"></i> 
+                        Customers who buy <span style="color: var(--accent);">${sourceProduct}</span> also buy:
+                    </h3>
+                </div>
+            `;
+            
+            recommendations.forEach((rec, index) => {
+                const actionClass = rec.lift >= 15 ? 'bundle' : (rec.lift >= 10 ? 'strong' : 'consider');
+                const actionIcon = rec.lift >= 15 ? 'gift' : (rec.lift >= 10 ? 'star' : 'lightbulb');
+                
+                html += `
+                    <div class="recommendation-card">
+                        <div class="rec-header">
+                            <div class="rec-product">${rec.product}</div>
+                            <div class="rec-rank">${index + 1}</div>
+                        </div>
+                        
+                        <div class="rec-metrics">
+                            <div class="metric-box">
+                                <div class="metric-label">Confidence</div>
+                                <div class="metric-value confidence">${(rec.confidence * 100).toFixed(0)}%</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-label">Lift</div>
+                                <div class="metric-value lift">${rec.lift.toFixed(1)}×</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-label">Support</div>
+                                <div class="metric-value">${(rec.support * 100).toFixed(1)}%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="rec-action">
+                            <span class="action-badge ${actionClass}">
+                                <i class="fas fa-${actionIcon}"></i> ${rec.action}
+                            </span>
+                            <p class="mt-2 mb-0 text-muted" style="font-size: 0.9rem;">
+                                ${(rec.confidence * 100).toFixed(0)}% of customers buy both products. 
+                                This pairing is ${rec.lift.toFixed(1)}× more likely than random chance.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function showNoResults(message) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h3>${message}</h3>
+                    <p>Try searching for: Pink Teacup, Jumbo Bag, Alarm Clock, or Lunch Box</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
