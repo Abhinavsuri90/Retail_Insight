@@ -1,4 +1,4 @@
-# 🛍️ RetailInsight - AI-Powered Customer Analytics
+# 🛍️ RetailInsight
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.8+-orange.svg)](https://scikit-learn.org/)
