@@ -10,6 +10,17 @@
 
 ---
 
+## 📊 Dataset
+
+**Source:** UCI Online Retail II Dataset  
+**Backup Download:** [Google Drive Folder](https://drive.google.com/drive/folders/1Orpo8SFt8LukT79ydY1eIMUjsNtvHtTX?usp=drive_link)
+
+📥 Download `online_retail_II.xlsx` and place in `data/raw/` folder
+
+**Details:** 541,909 transactions | 4,372 customers | Dec 2009 - Dec 2011 | UK retail
+
+---
+
 ## ✨ What This Does
 
 **RetailInsight** is a complete ML analytics pipeline that answers critical business questions:
@@ -29,21 +40,23 @@
 git clone <your-repo-url>
 cd RetailInsight-main
 
-# 2. Install dependencies
+# 2. Get dataset (if not included)
+# Download from: https://drive.google.com/drive/folders/1Orpo8SFt8LukT79ydY1eIMUjsNtvHtTX?usp=drive_link
+# Place online_retail_II.xlsx in data/raw/ folder
+
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 3. Run analytics pipeline (2 minutes)
+# 4. Run analytics pipeline (2 minutes)
 python retail_analytics_professional.py
 
-# 4. Run market basket analysis
+# 5. Run market basket analysis
 python run_market_basket.py
 
-# 5. Open dashboards (Cmd+Click the URLs in terminal)
+# 6. Open dashboards (Cmd+Click the URLs in terminal)
 # - Executive Dashboard: KPIs, segments, revenue analysis
 # - Product Recommender: Live search, bundles, lift metrics
 ```
-
-**Dataset:** Automatically downloads UCI Online Retail II (541,909 transactions)
 
 ---
 
